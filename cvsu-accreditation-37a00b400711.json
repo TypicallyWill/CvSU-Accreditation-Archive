@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "cvsu-accreditation",
+  "private_key_id": "37a00b400711e01102914d8175ed1ec25f12bf72",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBnO34TRedcMw/\n+lf6ESzvvOacwwLkhZ/DEIHfW/yBb5E2egk29zMOujaTb834oh1d2Tn264+ioarN\nCbxKeQC2WfmuptFxNer0c++WmSdTonLT/5JK/Ks6o4BkbqliOWIBDExUKEVYYSoH\niC5ozD3XoXJtKQNcD3pU6ZDkzFUwqA4f3ZSw/qyLpyCFAxBdvhKJfcr2a+mPug1O\nW8yvqwGIa52DyH9cpfrwcklp12zDQe0/xUhY50rjNS1BRm4i1rjCQrHJAbjUoiPc\nu5LM8pVa1AgRBGkst/spyzYt9v2pZxG4c4jvCjifbda4ydhMjfnI4OgooFaOI0Kd\nzdQ4JWLnAgMBAAECggEASm3zpaKtU18LhgTNUVrM9ZSe6uCk+gjMdAaihqUsGu4y\n2shrRnAddqnrVR6EBfL8axmZCO1hmFmh+ZSmh9KgjXllXNjQZz8dBcCT+EcEMUif\n8BOtv5oGkVJNh05rW1FH9bMunKOmlOU1bRPTE4KAu6ZbAM/ldLyWgJIRm4NZtIwa\nNLkUphgFmtyf9rcehkMYGfVm2yweydZtfyzfSONbBPrjn3k6RmqkPdgeM2NSvqCV\noVVrKSCTIlAnjWH+gdsJW8+G0aYvEqn1LwJWDFR5P6YM852Q2145Y8KlCMHbyXxc\nCParbVKhbu73U3ThdjLZY3cbYLyOq3B03pfNuSnSQQKBgQD46NTu2wxeZyNaks7I\nNm5vvzA50PVJazks3VfLVJv3t/uwVoSVw73Na4f8UMR5500D9S1P7o6UsHBXeFj8\nJmjvrdHpwCNDO2P7Dz4SbKsaC8z6IrCavEmu3rMUqF8+GwZsOXUjQYDDdnKGNfHx\nAWYMWbbl7m0yamnZ4YSuTDWNVwKBgQDHINldO4fml29ceua9W8mBSdSZsjncvn5S\nqCVzfPhcDh3HEZ5JzoICy/qJyQy1WBeUGeQIHnc7r7zpKB8sz3sF9PPK+CyXXZtR\nf5mJFmw1Vnj+1btszSaIQ7y7xjAzW/oLRurX2T/nUJsqxK9+UWRJ9V4WEEFVCPf6\ndL6RMXbM8QKBgQC7KWALZryLM6R6048XLw6lii56GuyF01E/sgP1CV7pyvc/Jh81\n+eR7VRMAn77NJyZbBn2W7/tYRL+EliLbHwqixqHj0SzyvfK08kYrVnjl8d+kanc/\nMrt4+U3RB7XuHiYbNK0m4HcxApyk3GVbYkDYopELndeQJEIJqjC5WuadqwKBgHD0\nuVihxF2R2aHkNa+EubGVZ/wnlZsalB3fNB9m7JuLhmi+HcRQWH+tpdkzKvpTlkx0\nw123qns5HThFgimxKGAgq4qfbOwQNWLttvKEva0j+E7WfxMg7JKvmggKTJ1Vt2le\nOSloG0/j8aE5ITPOh81MWqq5XdYW2FRClTdXj8SBAoGBAK5K00c5VyyC2FrvXyff\nD+CGcLFWKpxHWTJ6fQJPyvqBWIE1c+C5d6g8HjfthMkQWBKc56wBr6OlVOaq+j0f\nU0FqkSceegCZXFGgvYXL89DkBI3yRa8/WEJgfeVP7FIgrdmkLy13xcbUfE+PUdGO\nlCHVKKxHZ1n7Mli45WRIhzpL\n-----END PRIVATE KEY-----\n",
+  "client_email": "cvsuadmin@cvsu-accreditation.iam.gserviceaccount.com",
+  "client_id": "103395689330560086502",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/cvsuadmin%40cvsu-accreditation.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
