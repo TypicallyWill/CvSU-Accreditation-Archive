@@ -120,6 +120,7 @@ $result = $mysqli->query($sql);
                 <th class="text-center">NAME</th>
                 <th class="text-center">OWNER</th>
                 <th class="text-center">DATE UPLOADED</th>
+                <th class="text-center">COURSE</th>
                 <th class="text-center">TAGS</th>
                 <th class="text-center">ACTION</th>
             </tr>
@@ -130,9 +131,10 @@ $result = $mysqli->query($sql);
             ?>
                 <tr class="results">
                     <td class="text-center"><?php echo $rows['id']; ?></td>
-                    <td class="text-center"><?php echo $rows['file_name'];?></td>
+                    <td class="text-center"><?php echo substr($rows['file_name'], 0, 30); ?></td>
                     <td class="text-center"><?php echo $rows['file_owner'];?></td>
                     <td class="text-center"><?php echo $rows['upload_date'];?></td>
+                    <td class="text-center"><?php echo $rows['file_course'];?></td>
                     <td class="text-center">
                           <?php
                           $tags = explode(',', $rows['file_tags']);
@@ -216,63 +218,48 @@ $result = $mysqli->query($sql);
         <form action="upload.php" method="POST" enctype="multipart/form-data" id="upload" onsubmit="return false;">
         <input type="file" name="file" id="fileInput" accept=".pdf, .docx, .png, .jpg, .jpeg">
         <label for="directories">File Directory:</label>
-        <select name="directories" id="directories">
-        <option value=""></option>
-          <option value="CAFENR">CAFENR</option>
-          <option value="CAS">CAS</option>
-          <option value="CCJ">CCJ</option>
-          <option value="CED">CED</option>
-          <option value="CEMDS">CEMDS</option>
-          <option value="CEIT">CEIT</option>
-          <option value="CON">CON</option>
-          <option value="CSPEAR">CSPEAR</option>
-          <option value="CVMBS">CVMBS</option>
-          <option value="College of Medicine">College of Medicine</option>
-          <option value="Graduate School and Open Learning College">Graduate School and Open Learning College</option>
-        </select>
+                <div class="fixed-dropdown">
+                    <select name="directories" id="directories" onchange="updateCourseOptions()">
+                      <option value=""></option>
+                      <option value="CAFENR">CAFENR</option>
+                      <option value="CAS">CAS</option>
+                      <option value="CCJ">CCJ</option>
+                      <option value="CED">CED</option>
+                      <option value="CEMDS">CEMDS</option>
+                      <option value="CEIT">CEIT</option>
+                      <option value="CON">CON</option>
+                      <option value="CSPEAR">CSPEAR</option>
+                      <option value="CVMBS">CVMBS</option>
+                      <option value="College of Medicine">College of Medicine</option>
+                      <option value="Graduate School and Open Learning College">Graduate School and Open Learning College</option>
+                     </select>
+                  </div>
 
 
-        <label for="directories">Course :</label>
-        <select name="directories" id="directories">
-        <option value=""></option>
-          <option value="#">CAFENR</option>
-          <option value="BSA-ANSCI">BS Agriculture (Major in Animal Science)</option>
-          <option value="BSA-CROPSCI">BS Agriculture (Major in Crop Science)</option>
-          <option value="BSES">BS in Environmental Science</option>
-          <option value="BSFT">BS in Food Technology</option>
-          <option value="BSLUDM">BS in Land Use Design and Management</option>
-          <option value="BAE">Bachelor in Agricultural Entrepreneurship</option>
-          <option value="CAS">Certificate in Agricultural Science</option>
-        </select>
-        
-        <label for="directories">Course :</label>
-        <select name="directories" id="directories">
-        <option value=""></option>
-          <option value="#">CAS</option>
-          <option value="BSA-ANSCI">BS Agriculture (Major in Animal Science)</option>
-          <option value="BSA-CROPSCI">BS Agriculture (Major in Crop Science)</option>
-          <option value="BSES">BS in Environmental Science</option>
-          <option value="BSFT">BS in Food Technology</option>
-          <option value="BSLUDM">BS in Land Use Design and Management</option>
-          <option value="BAE">Bachelor in Agricultural Entrepreneurship</option>
-          <option value="CAS">Certificate in Agricultural Science</option>
-        </select>
+        <label for="course">Course :</label>
+        <div class="fixed-dropdown">
+          <select name="course" id="course">
+            <option value=""></option>
+          </select>
+        </div>
 
         <br></br>
         <label for="area">File Area:</label>
-        <select name="area" id="area">
-              <option value=""></option>
-              <option value="Area 1">Vision, Mission, Goals and Objective</option>
-							<option value="Area 2">Faculty</option>
-							<option value="Area 3">Curricular</option>
-							<option value="Area 4">Support to Students</option>
-							<option value="Area 5">Research</option>
-							<option value="Area 6">Extension and Community Involvement</option>
-							<option value="Area 7">Library</option>
-							<option value="Area 8">Physical Plan and Facilities</option>
-							<option value="Area 9">Laboratories</option>
-							<option value="Area 10">Administration</option>
-        </select>
+        <div class="fixed-dropdown">
+          <select name="area" id="area">
+                <option value=""></option>
+                <option value="Area 1">Vision, Mission, Goals and Objective</option>
+                <option value="Area 2">Faculty</option>
+                <option value="Area 3">Curricular</option>
+                <option value="Area 4">Support to Students</option>
+                <option value="Area 5">Research</option>
+                <option value="Area 6">Extension and Community Involvement</option>
+                <option value="Area 7">Library</option>
+                <option value="Area 8">Physical Plan and Facilities</option>
+                <option value="Area 9">Laboratories</option>
+                <option value="Area 10">Administration</option>
+          </select>
+        </div>  
                     <<input type="hidden" name="tags" id="hiddenTagsInput" value="">
     <label for="tags">Tags (Press Enter to add a tag):</label>
     <div id="tagsInputContainer" style="display: flex; flex-wrap: wrap; gap: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 5px;"></div>
@@ -332,7 +319,45 @@ $result = $mysqli->query($sql);
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
 
+  <script>
+// JavaScript function to update "Course" options based on selected "College"
+function updateCourseOptions() {
+  var selectedCollege = document.getElementById('directories').value;
+  var courseDropdown = document.getElementById('course');
+  courseDropdown.innerHTML = ''; // Clear existing options
 
+  if (selectedCollege !== '') {
+    var courses = getCourseOptions(selectedCollege);
+
+    // Populate "Course" dropdown with options
+    for (var i = 0; i < courses.length; i++) {
+      var option = document.createElement('option');
+      option.value = courses[i];
+      option.text = courses[i];
+      courseDropdown.add(option);
+    }
+  }
+}
+
+// Function to get course options based on selected college
+function getCourseOptions(college) {
+  var courseOptions = {
+      'CAFENR': ['Bachelor of Science in Agriculture', 'Bachelor of Science in Environmental Science', 'Bachelor of Science in Food Technology', 'Bachelor of Science in Land Use Design and Management', 'Bachelor in Agricultural Entrepreneurship', 'Certificate in Agricultural Science'],
+      'CAS': ['Bachelor of Science in Biology', 'Bachelor of Arts in Journalism', 'Bachelor of Arts in English', 'Bachelor of Science in Psychology', 'Bachelor of Arts in Political Science', 'Bachelor of Science in Social Work', 'Bachelor of Science in Applied Mathematics (Major in Statistics)'], 
+      'CCJ': ['Bachelor of Science in Criminology', 'Bachelor of Science in Industrial Security Administration'], 
+      'CED': ['Bachelor of Secondary Education', 'Bachelor of Elementary Education', 'Bachelor of Hotel and Restaurant Management', 'Bachelor of Tourism Management'], 
+      'CEMDS': ['Bachelor of Science in Office Administration', 'Bachelor of Science in Accountancy', 'Bachelor of Science in Business Administration', 'Bachelor of Science in Economics', 'Bachelor of Science in Development Management', 'Bachelor of Science in International Studies'], 
+      'CEIT': ['Bachelor of Science in Agricultural and Biosystems Engineering', 'Bachelor of Science in Architecture', 'Bachelor of Science in Civil Engineering', 'Bachelor of Science in Computer Engineering', 'Bachelor of Science in Computer Science', 'Bachelor of Science in Electrical Engineering', 'Bachelor of Science in Electronics Engineering', 'Bachelor of Science in Industrial Engineering', 'Bachelor of Science in Industrial Technology', 'Bachelor of Science in Information Technology', 'Bachelor of Science in Office Administration'], 
+      'CON': ['Bachelor of Science in Nursing', 'Bachelor of Science in Medical Technology', 'Bachelor of Science in Midwifery'], 
+      'CSPEAR': ['Bachelor of Physical Education', 'Bachelor in Sports and Recreational Management'], 
+      'CVMBS': ['Doctor of Veterinary Medicine', 'Bachelor of Science in Veterinary Technology', 'Bachelor of Science in Animal Health and Management', 'Bachelor of Science in Biomedical Science'], 
+      'Graduate School and Open Learning College': ['Doctor of Philosophy in Agricultural', 'Doctor of Philosophy in Education', 'Doctor of Philosophy in Management', 'Master of Arts in Education', 'Master of Agriculture', 'Master of Engineering', 'Master in Information Technology', 'Master of Management', 'Master of Business Administration', 'Master of Professional Studies', 'Master of Science in Agriculture', 'Master of Science in Biology', 'Master of Science in Food Science'], 
+    // Add options for other colleges
+  };
+
+  return courseOptions[college] || [];
+}
+</script>
 
  <!-- Inside the <head> tag -->
  <script>

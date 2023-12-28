@@ -44,6 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $file_type = $_FILES["file"]["type"];
                 $file_owner = $first_name . " " . $last_name;
                 $file_directory = $_POST["directories"];
+                $file_course = $_POST["course"];
                 $file_area = $_POST["area"];
                 $owner_email = $email;
                 $file_tags = $_POST["tags"]; // Get file tags from the form
@@ -60,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Remove leading and trailing commas
                 $cleaned_file_tags = trim($cleaned_file_tags, ',');
 
-                $sql = "INSERT INTO files (file_name, file_size, file_type, file_owner, file_directory, file_area, owner_email, file_tags) VALUES ('$file_name', '$file_size', '$file_type', '$file_owner', '$file_directory', '$file_area', '$owner_email', '$cleaned_file_tags')";
+                $sql = "INSERT INTO files (file_name, file_size, file_type, file_owner, file_directory, file_course, file_area, owner_email, file_tags) VALUES ('$file_name', '$file_size', '$file_type', '$file_owner', '$file_directory', '$file_course', '$file_area', '$owner_email', '$cleaned_file_tags')";
 
 
                 if ($db_connection->query($sql) === TRUE) {
