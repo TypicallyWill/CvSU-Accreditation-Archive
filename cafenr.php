@@ -232,7 +232,7 @@ $result = $mysqli->query($sql);
                     <<input type="hidden" name="tags" id="hiddenTagsInput" value="">
     <label for="tags">Tags (Press Enter to add a tag):</label>
     <div id="tagsInputContainer" style="display: flex; flex-wrap: wrap; gap: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 5px;"></div>
-    <input type="text" name="tags" id="tagsInput" class="form-control" placeholder="Enter tags..." onkeydown="handleTagInput(event)">
+    <input type="text" name="tagsInputVisible" id="tagsInput" class="form-control" placeholder="Enter tags..." onkeydown="handleTagInput(event)">
         </form>
     </div>
         <div class="modal-footer">
@@ -293,11 +293,10 @@ $result = $mysqli->query($sql);
  <!-- Inside the <head> tag -->
  <script>
     // Function to add tag to the tags input
-    function addTag() {
-        var tagsInput = document.getElementById('tagsInput');
+    function addTag(tag) {
         var tagsInputContainer = document.getElementById('tagsInputContainer');
 
-        if (tagsInput.value.trim() !== "") {
+        if (tag.trim() !== "") {
             var tagElement = document.createElement('span');
             tagElement.className = 'badge badge-primary';
             tagElement.style.marginRight = '5px';
@@ -305,10 +304,9 @@ $result = $mysqli->query($sql);
             tagElement.style.borderRadius = '10px';
             tagElement.style.background = '#5bc0de';
             tagElement.style.color = '#fff';
-            tagElement.innerHTML = tagsInput.value.trim() + '<span onclick="removeTag(this)" style="cursor: pointer; margin-left: 5px;">&times;</span>';
+            tagElement.innerHTML = tag + '<span onclick="removeTag(this)" style="cursor: pointer; margin-left: 5px;">&times;</span>';
 
             tagsInputContainer.appendChild(tagElement);
-            tagsInput.value = ""; // Clear the input after adding a tag
 
             // Update the hidden input field with the current tags
             updateHiddenTagsInput();
@@ -329,7 +327,7 @@ $result = $mysqli->query($sql);
         var tags = [];
 
         // Get all tags from the visible tag elements
-        tagsInputContainer.querySelectorAll('span').forEach(function(tagElement) {
+        tagsInputContainer.querySelectorAll('span').forEach(function (tagElement) {
             tags.push(tagElement.innerText.trim());
         });
 
@@ -337,25 +335,40 @@ $result = $mysqli->query($sql);
         hiddenTagsInput.value = tags.join(',');
     }
 
-    // Function to handle "Enter" key in the tags input
-    function handleTagInput(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault(); // Prevent the default behavior (form submission)
-            addTag(); // Call the addTag function when Enter key is pressed
-        }
-    }
+   // Handle Enter key press in tags input
+function handleTagInput(event) {
+    if (event.key === "Enter") {
+        event.preventDefault(); // Prevent the default behavior (form submission)
+        var tagsInput = document.getElementById('tagsInput');
+        var tags = tagsInput.value.trim();
 
-     // Your form submission logic
-     function uploadFileAndDb() {
-        uploadFile();
-        dbUpload();
-        updateHiddenTagsInput(); // Ensure hidden tags input is updated before form submission
-        // Delay form submission to allow updating of hidden tags input
-        setTimeout(function() {
-            document.getElementById('upload').submit();
-        }, 500);
+        // Remove any special characters except letters, numbers, and spaces
+        tags = tags.replace(/[^a-zA-Z0-9\s]/g, '');
+
+        // Remove extra spaces and split tags by space
+        var tagArray = tags.split(/\s+/);
+
+        // Filter out empty tags
+        tagArray = tagArray.filter(tag => tag.trim() !== '');
+
+        // Join tags with commas
+        tags = tagArray.join(',');
+
+        // Add the tag to the input
+        addTag(tags);
+
+        // Clear the input after adding tags
+        tagsInput.value = "";
+
+        // Update the hidden input field with the current tags
+        updateHiddenTagsInput();
     }
+}
+
+
+
 </script>
+
 
 
   <script>

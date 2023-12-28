@@ -81,7 +81,7 @@ $result = $mysqli->query($sql);
                 </div>
                 <div class="profile-boxx">
                     <div class="col-md-8">
-		            <div class="alert alert-info" style="margin-top:10px;"> CAFENR</div>
+		            <div class="alert alert-info" style="margin-top:10px;"> College of Medicine</div>
                 <a href="#" id="authorizationButton" onclick="handleAuthClick()" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-plus"></span> Upload File </a>
             </div>
             
@@ -96,7 +96,7 @@ $result = $mysqli->query($sql);
             </button>
             <div class="content">
               <div class="menu-content">
-              <a href="profile_directory.php">Profile</a>
+                <a href="profile_directory.php">Profile</a>
                 <a href="uploaded_files.php">Uploaded Files</a>
                 <a href="users.php" style="<?php echo (getUserLevel() != 1) ? 'display:none;' : ''; ?>">Users</a>
                 <a href="logs.php" style="<?php echo (getUserLevel() != 1) ? 'display:none;' : ''; ?>">User Activity</a>
@@ -229,11 +229,15 @@ $result = $mysqli->query($sql);
 							<option value="Area 9">Laboratories</option>
 							<option value="Area 10">Administration</option>
         </select>
-        </div>
+                    <<input type="hidden" name="tags" id="hiddenTagsInput" value="">
+    <label for="tags">Tags (Press Enter to add a tag):</label>
+    <div id="tagsInputContainer" style="display: flex; flex-wrap: wrap; gap: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 5px;"></div>
+    <input type="text" name="tagsInputVisible" id="tagsInput" class="form-control" placeholder="Enter tags..." onkeydown="handleTagInput(event)">
+        </form>
+    </div>
         <div class="modal-footer">
         <a href="#" id="uploadButton" onclick="uploadFile();dbUpload();" type="submit" value="Upload File" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-plus"></span> Upload </a>
         <a href="#"  class="btn btn-danger btn-sm" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-remove"></span> Cancel </a>
-        </div>
       </div>
     </div>
   </div>
@@ -282,6 +286,89 @@ $result = $mysqli->query($sql);
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+
+
+ <!-- Inside the <head> tag -->
+ <script>
+    // Function to add tag to the tags input
+    function addTag(tag) {
+        var tagsInputContainer = document.getElementById('tagsInputContainer');
+
+        if (tag.trim() !== "") {
+            var tagElement = document.createElement('span');
+            tagElement.className = 'badge badge-primary';
+            tagElement.style.marginRight = '5px';
+            tagElement.style.padding = '5px 10px';
+            tagElement.style.borderRadius = '10px';
+            tagElement.style.background = '#5bc0de';
+            tagElement.style.color = '#fff';
+            tagElement.innerHTML = tag + '<span onclick="removeTag(this)" style="cursor: pointer; margin-left: 5px;">&times;</span>';
+
+            tagsInputContainer.appendChild(tagElement);
+
+            // Update the hidden input field with the current tags
+            updateHiddenTagsInput();
+        }
+    }
+
+    // Function to remove tag
+    function removeTag(tagElement) {
+        tagElement.parentNode.remove();
+        // Update the hidden input field after removing a tag
+        updateHiddenTagsInput();
+    }
+
+    // Function to update the hidden input field with the current tags
+    function updateHiddenTagsInput() {
+        var tagsInputContainer = document.getElementById('tagsInputContainer');
+        var hiddenTagsInput = document.getElementById('hiddenTagsInput');
+        var tags = [];
+
+        // Get all tags from the visible tag elements
+        tagsInputContainer.querySelectorAll('span').forEach(function (tagElement) {
+            tags.push(tagElement.innerText.trim());
+        });
+
+        // Update the hidden input field value
+        hiddenTagsInput.value = tags.join(',');
+    }
+
+   // Handle Enter key press in tags input
+function handleTagInput(event) {
+    if (event.key === "Enter") {
+        event.preventDefault(); // Prevent the default behavior (form submission)
+        var tagsInput = document.getElementById('tagsInput');
+        var tags = tagsInput.value.trim();
+
+        // Remove any special characters except letters, numbers, and spaces
+        tags = tags.replace(/[^a-zA-Z0-9\s]/g, '');
+
+        // Remove extra spaces and split tags by space
+        var tagArray = tags.split(/\s+/);
+
+        // Filter out empty tags
+        tagArray = tagArray.filter(tag => tag.trim() !== '');
+
+        // Join tags with commas
+        tags = tagArray.join(',');
+
+        // Add the tag to the input
+        addTag(tags);
+
+        // Clear the input after adding tags
+        tagsInput.value = "";
+
+        // Update the hidden input field with the current tags
+        updateHiddenTagsInput();
+    }
+}
+
+
+
+</script>
+
 
 
   <script>

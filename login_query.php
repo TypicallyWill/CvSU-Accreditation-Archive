@@ -31,6 +31,19 @@ function performLogin($client, $db_connection, $email)
         $user_data = $result->fetch_assoc();
         $_SESSION['user_level'] = $user_data['user_level'];
 
+        // Check if oauth_uid column is empty
+        if (empty($user_data['oauth_uid'])) {
+            // Retrieve oauth_uid from $user_info['id']
+            $google_oauth = new Google_Service_Oauth2($client);
+            $user_info = $google_oauth->userinfo->get();
+            $oauth_uid = trim($user_info['id']);
+
+            // Update oauth_uid in the users table
+            $update_oauth_uid_query = $db_connection->prepare("UPDATE `users` SET `oauth_uid`=? WHERE `email`=?");
+            $update_oauth_uid_query->bind_param("ss", $oauth_uid, $email);
+            $update_oauth_uid_query->execute();
+        }
+
         // Update the active_status to 'online' when the user logs in
         $update_status_query = $db_connection->prepare("UPDATE `users` SET `active_status`='online' WHERE `email`=?");
         $update_status_query->bind_param("s", $email);
@@ -80,7 +93,7 @@ function performLogin($client, $db_connection, $email)
                     case 'CVMBS':
                         header('Location: cvmbs.php');
                         exit;
-                    case 'Colege of Medicine':
+                    case 'College of Medicine':
                         header('Location: com.php');
                         exit;
                     case 'Graduate School':

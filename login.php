@@ -50,7 +50,7 @@ if (isset($_GET['code'])) {
                             <img src="https://developers.google.com/identity/images/g-logo.png">
                         </div>
                         <span class="text-container">
-                            <span><a href="<?= $login_url ?>" class="login-url">Sign in with CvSU account</a></span>
+                            <span><a href="<?= $login_url ?>" class="login-url">Sign in with CvSU Account</a></span>
                         </span>
                     </div>
                 </div>

@@ -86,6 +86,7 @@ $mysqli->close();
                 <div class="profile-boxx">
                     <div class="col-md-8">
 		            <div class="alert alert-info" style="margin-top:10px;"> Users </div>
+                <a href="#" id="authorizationButton" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addUserModal"><span class="glyphicon glyphicon-plus"></span> Add User </a>
             </div>
 
             <div id="nav-bar" class="nav-bar">
@@ -124,10 +125,10 @@ $mysqli->close();
                 <th class="text-center">FIRST NAME</th>
                 <th class="text-center">LAST NAME</th>
                 <th class="text-center">GENDER</th>
-                <th class="text-center">BIRTHDATE</th>
                 <th class="text-center">EMAIL</th>
                 <th class="text-center">USER LEVEL</th>
                 <th class="text-center">COLLEGE</th>
+                <th class="text-center">ACTION</th>
             </tr>
         </thead>
         <tbody>
@@ -144,7 +145,6 @@ $mysqli->close();
                     <td class="text-center"><?php echo $rows['first_name']; ?></td>
                     <td class="text-center"><?php echo $rows['last_name']; ?></td>
                     <td class="text-center"><?php echo $rows['gender']; ?></td>
-                    <td class="text-center"><?php echo $rows['birthdate']; ?></td>
                     <td class="text-center"><?php echo $rows['email']; ?></td>
                     <td class="text-center">
                         <?php
@@ -161,6 +161,11 @@ $mysqli->close();
                          ?>
                     </td>
                     <td class="text-center"><?php echo $rows['college']; ?></td>
+                    <td>
+                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal_info"><span class="glyphicon glyphicon-list-alt"></span> Info</button>
+                    <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#modal_edit"><span class="glyphicon glyphicon-list-alt"></span> Edit</button>
+                    <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#modal_remove" data-email="<?php echo $rows['email']; ?>"><span class="glyphicon glyphicon-list-alt"></span> Delete</button>
+                    </td>
                 </tr>
             <?php
             }
@@ -192,6 +197,89 @@ $mysqli->close();
       </div>
 
     
+<!-- Modal add user -->
+<div class="modal fade" id="addUserModal" role="dialog">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add User</h4>
+            </div>
+            <div class="modal-body">
+                <form action="add_user.php" method="post">
+                    <div class="form-group row">
+                        <label for="first_name" class="col-sm-4 col-form-label text-right">First Name:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="last_name" class="col-sm-4 col-form-label text-right">Last Name:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="gender" class="col-sm-4 col-form-label text-right">Gender:</label>
+                        <div class="col-sm-8">
+                            <select class="form-control" id="gender" name="gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="birthdate" class="col-sm-4 col-form-label text-right">Birthdate:</label>
+                        <div class="col-sm-8">
+                            <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="email" class="col-sm-4 col-form-label text-right">Email:</label>
+                        <div class="col-sm-8">
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                <label for="user_level" class="col-sm-4 col-form-label text-right">User Level:</label>
+                <div class="col-sm-8">
+                    <select class="form-control" id="user_level" name="user_level" onchange="toggleCollegeField()" required>
+                        <option value="1">Admin</option>
+                        <option value="2">IDO</option>
+                        <option value="3">University Personnel</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row" id="collegeField" style="display: none;">
+                <label for="college" class="col-sm-4 col-form-label text-right">College:</label>
+                <div class="col-sm-8">
+                    <select class="form-control" id="college" name="college">
+                            <option value="CAFENR">CAFENR</option>
+                            <option value="CAS">CAS</option>
+                            <option value="CCJ">CCJ</option>
+                            <option value="CED">CED</option>
+                            <option value="CEMDS">CEMDS</option>
+                            <option value="CEIT">CEIT</option>
+                            <option value="CON">CON</option>
+                            <option value="CSPEAR">CSPEAR</option>
+                            <option value="CVMBS">CVMBS</option>
+                            <option value="College of Medicine">College of Medicine</option>
+                            <option value="Graduate School and Open Learning College">Graduate School and Open Learning College</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-plus"></span> Add</button>
+                        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
      <!-- Modal logout -->
  <div class="modal fade" id="logout" role="dialog">
     <div class="modal-dialog modal-sm">
@@ -211,30 +299,84 @@ $mysqli->close();
     </div>
   </div>
 </div>
-
-    <!-- Modal Delete -->
-
-<div class="modal fade" id="modal_remove" aria-hidden="true" role="dialog">
-		<div class="modal-dialog modal-dialog-centered">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h3 class="modal-title">System</h3>
-				</div>
-				<div class="modal-body">
-					<h4 class="text-danger">Are you sure you want to remove this file?</h4>
-				</div>
-				<div class="modal-footer">
-					<a type="button" class="btn btn-success" data-dismiss="modal">No</a>
-					<button type="button" class="btn btn-danger" onclick="deleteFromDrive();delayDelete();" data-dismiss="modal">Yes</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- Modal Delete User -->
+    <div class="modal fade" id="modal_remove" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmation</h3>
+            </div>
+            <div class="modal-body">
+                <h4 class="text-danger" id="confirmationMessage">Do you want to remove this user from the access to the system?</h4>
+                <p id="userEmailToDelete" style="display: none;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-danger" onclick="deleteUser()">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
+ <script>
+    $(document).on('click', '.btn-danger', function () {
+        var email = $(this).closest('tr').find('td:eq(5)').text(); // Assuming the email is in the 6th column (index 5)
+        $('#userEmailToDelete').text(email);
+
+        // Show the confirmation modal
+        $('#modal_remove').modal('show');
+    });
+
+    function deleteUser() {
+        // Close the confirmation modal and remove the backdrop
+        $('#modal_remove').modal('hide');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+
+        var email = $('#userEmailToDelete').text();
+
+        $.ajax({
+            type: 'POST',
+            url: 'delete_user.php',
+            data: { email: email },
+            success: function (response) {
+                // Additional actions after successful deletion
+                // Show an alert message (no OK button)
+                window.alert('User deleted successfully.');
+
+                // Reload the page after a delay (e.g., 1000 milliseconds or 1 second)
+                setTimeout(function () {
+                    window.location.reload();
+                }, 1000);
+            },
+            error: function (error) {
+                // Show an alert message for errors
+                window.alert('Error deleting user: ' + error.responseText);
+            }
+        });
+    }
+</script>
+
+
+
+
+  <script>
+    function toggleCollegeField() {
+        var userLevelSelect = document.getElementById('user_level');
+        var collegeField = document.getElementById('collegeField');
+
+        // Check if the selected user level requires the display of the college field
+        if (userLevelSelect.value == '3') { // Adjust this condition based on your user level values
+            collegeField.style.display = 'block';
+        } else {
+            collegeField.style.display = 'none';
+        }
+    }
+</script>
 
   <script>
     // search function for search box

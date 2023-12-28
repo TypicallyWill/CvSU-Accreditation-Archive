@@ -25,6 +25,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (!in_array($file_type, $allowed_types)) {
             echo "Sorry, only PDF, DOCX, JPG, JPEG, PNG files are allowed.";
         } else {
+            // Establish the database connection
+            $db_host = 'localhost';
+            $db_user = 'root';
+            $db_password = '';
+            $db_name = 'cvsuaccr_db';
+
+            $db_connection = new mysqli($db_host, $db_user, $db_password, $db_name);
+
+            // CHECK DATABASE CONNECTION
+            if ($db_connection->error) {
+                die("Connection Failed - " . $db_connection->connect_error);
+            }
+
             if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
                 $file_name = $_FILES["file"]["name"];
                 $file_size = $_FILES["file"]["size"];
@@ -35,19 +48,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $owner_email = $email;
                 $file_tags = $_POST["tags"]; // Get file tags from the form
 
-                $db_host = 'localhost';
-                $db_user = 'root';
-                $db_password = '';
-                $db_name = 'cvsuaccr_db';
+                // Escape the file_tags to prevent SQL injection
+                $escaped_file_tags = $db_connection->real_escape_string($file_tags);
 
-                $db_connection = new mysqli($db_host, $db_user, $db_password, $db_name);
+                // Escape the file_tags to prevent SQL injection
+                $escaped_file_tags = $db_connection->real_escape_string($file_tags);
 
-                // CHECK DATABASE CONNECTION
-                if ($db_connection->error) {
-                    die("Connection Failed - " . $db_connection->connect_error);
-                }
+                // Remove unexpected characters from file_tags and separate tags with commas
+                $cleaned_file_tags = preg_replace('/[^a-zA-Z0-9,\s]/', '', $escaped_file_tags);
 
-                $sql = "INSERT INTO files (file_name, file_size, file_type, file_owner, file_directory, file_area, owner_email, file_tags) VALUES ('$file_name', '$file_size', '$file_type', '$file_owner', '$file_directory', '$file_area', '$owner_email', '$file_tags')";
+                // Remove leading and trailing commas
+                $cleaned_file_tags = trim($cleaned_file_tags, ',');
+
+                $sql = "INSERT INTO files (file_name, file_size, file_type, file_owner, file_directory, file_area, owner_email, file_tags) VALUES ('$file_name', '$file_size', '$file_type', '$file_owner', '$file_directory', '$file_area', '$owner_email', '$cleaned_file_tags')";
+
 
                 if ($db_connection->query($sql) === TRUE) {
                     // Retrieve college of the current user from users table
