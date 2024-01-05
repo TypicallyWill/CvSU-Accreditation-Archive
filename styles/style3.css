@@ -133,15 +133,15 @@ h1 {
 }
 
 .drey {
-    background-image: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(/cvsu_accrsystem/images/drey.jpg);
+    background-image: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(/cvsu_accrsystem/images/drey.png);
 }
 
 .will {
-    background-image: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(/cvsu_accrsystem/images/will.jpg);
+    background-image: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(/cvsu_accrsystem/images/will.png);
 }
 
 .joel {
-    background-image: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(/cvsu_accrsystem/images/joel.jpg);
+    background-image: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(/cvsu_accrsystem/images/joel.png);
 }
 
 .card:hover {
@@ -153,15 +153,15 @@ h1 {
 }
 
 .drey:hover {
-    background-image: url(/cvsu_accrsystem/images/drey.jpg);
+    background-image: url(/cvsu_accrsystem/images/drey.png);
 }
 
 .will:hover {
-    background-image: url(/cvsu_accrsystem/images/will.jpg);
+    background-image: url(/cvsu_accrsystem/images/will.png);
 }
 
 .joel:hover {
-    background-image: url(/cvsu_accrsystem/images/joel.jpg);
+    background-image: url(/cvsu_accrsystem/images/joel.png);
 }
 
 h5 {
@@ -173,4 +173,52 @@ h5 {
 
 .card:hover h5 {
     text-shadow: 0 0 5px #000000;
+}
+
+.menu { 
+    display: inline-block; 
+    position: relative; 
+}
+
+.menu-button {
+    background-color: transparent;  
+    cursor: default;
+    all: unset;
+    margin-top: 18px;
+}
+
+.menu-icon {
+    width: 28px;
+    cursor: pointer;
+    margin-left: 100px;
+    filter: drop-shadow(2px 2px 4px #000000);
+    padding-bottom: 12px;
+}
+
+.menu-content {
+    display: none;
+    position: absolute;
+    width: 80px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    background: linear-gradient(rgba(255, 255, 255, .8), rgba(255, 255, 255, .8));
+    font-family: "Roboto", arial, sans-serif;
+    font-size: 15px;
+    margin-left: 48px;
+}
+
+.menu:hover .menu-content {
+    display: block;
+}
+
+.menu-content a {
+    display: block;
+    color: #000000;
+    padding: 10px;
+    text-decoration: none;
+}
+
+.menu-content a:hover {
+    color: #FFFFFF;
+    background: linear-gradient(rgba(9, 115, 214, 0.8), rgba(9, 115, 214, 0.8));
 }

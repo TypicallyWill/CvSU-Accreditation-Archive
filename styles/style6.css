@@ -174,13 +174,14 @@ body {
     overflow-y: auto;
 }
 
-.profile-boxx {
+.profile-boxx{
     width: 700px;
     height: 610px;
     background: linear-gradient(rgba(255, 255, 255, .7), rgba(255, 255, 255, .7));
     margin-top: 40px;
     overflow-y: auto;
 }
+
 
 .profile-info ul {
     list-style: none;
@@ -200,24 +201,4 @@ body {
 
 .pic {
     border: 2px solid #53962f;
-}
-
-#outdated-part {
-    transition: margin-left .5s;
-    padding: 16px;
-}
-
-.outdated-box {
-    width: 765px;
-    height: 600px;
-    background: linear-gradient(rgba(255, 255, 255, .7), rgba(255, 255, 255, .7));
-    margin-left: 10px;
-    margin-top: 8px;
-}
-
-.outdated-boxx {
-    width: 765px;
-    height: 560px;
-    background: linear-gradient(rgba(255, 255, 255, .7), rgba(255, 255, 255, .7));
-    overflow-y: auto;
 }
