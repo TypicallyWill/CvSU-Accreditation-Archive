@@ -40,7 +40,7 @@ if ($result) {
     $row = $result->fetch_assoc();
     $user_level = $row['user_level'];
 
-    if ($user_level == 0) {
+    if ($user_level == 1 || $user_level == 2 || $user_level == 3) {
         // Redirect to login.php with an alert message
         echo "<script>
                 alert('You are not authorized.');
@@ -61,7 +61,7 @@ $totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM logs")->fetch_asso
 $totalPages = ceil($totalRecords / $limit);
 
 // SQL query to select data from database with pagination
-$sql = "SELECT * FROM logs ORDER BY id ASC LIMIT $limit OFFSET $offset";
+$sql = "SELECT * FROM logs ORDER BY time DESC LIMIT $limit OFFSET $offset";
 $result = $mysqli->query($sql);
 ?>
 <!DOCTYPE html>
@@ -72,6 +72,12 @@ $result = $mysqli->query($sql);
     <title>CvSU Accreditation Archive System</title>
     <link rel="stylesheet" type="text/css" href="styles/style5.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <style>
+        .pagination {
+          margin-left: 15px;
+        }
+    </style>
 </head>
 <body>
 
@@ -84,7 +90,7 @@ $result = $mysqli->query($sql);
                 </div>
                 <div class="profile-boxx">
                     <div class="col-md-8">
-		            <div class="alert alert-info" style="margin-top:10px;"> User Activity </div>
+		            <div class="alert alert-info" style="margin-top:10px; width:350px"> User Activity </div>
             </div>
 
             <div id="nav-bar" class="nav-bar">
@@ -98,10 +104,8 @@ $result = $mysqli->query($sql);
             <div class="menu-content">
             <a href="profile_directory.php">Profile</a>
             <a href="uploaded_files.php">Uploaded Files</a>
-            <?php if ($user_level == 1): ?>
-                <a href="logs.php">Activity logs</a>
-                <a href="users.php">Users</a>
-            <?php endif; ?>
+            <a href="outdated_files.php">Outdated Files</a>
+            <a href="user_list.php">User List</a>
             <a href="#" data-toggle="modal" data-target="#logout">Sign out</a>
             </div>
           </div>
@@ -116,11 +120,10 @@ $result = $mysqli->query($sql);
         <table class="file-query table table-bordered table-hover table-striped">
         <thead>
             <tr>
-                <th class="text-center">ID</th>
+                <th class="text-center">TIME</th>
                 <th class="text-center">EMAIL</th>
                 <th class="text-center">USER LEVEL</th>
                 <th class="text-center">COLLEGE</th>
-                <th class="text-center">TIME</th>
                 <th class="text-center">ACTIVITY</th>
             </tr>
         </thead>
@@ -129,24 +132,25 @@ $result = $mysqli->query($sql);
             while ($rows = $result->fetch_assoc()) {
             ?>
                 <tr class="results">
-                    <td class="text-center"><?php echo $rows['id']; ?></td>
+                    <td class="text-center"><?php echo $rows['time']; ?></td>
                     <td class="text-center"><?php echo $rows['email']; ?></td>
                     <td class="text-center">
                         <?php
                             $userLevel = $rows['user_level'];
-                            if ($userLevel == 1) {
+                            if ($userLevel == 0) {
                                     echo 'Admin';
-                            } elseif ($userLevel == 2) {
+                            } elseif ($userLevel == 1) {
                                     echo 'IDO';
-                            } elseif ($userLevel == 3) {
+                            } elseif ($userLevel == 2) {
                                     echo 'University Personnel';
+                            } elseif ($userLevel == 3) {
+                                    echo 'Student';
                             } else {
                                     echo 'Unknown Role'; 
                             }
                          ?>
                     </td>
                     <td class="text-center"><?php echo $rows['college']; ?></td>
-                    <td class="text-center"><?php echo $rows['time']; ?></td>
                     <td class="text-center"><?php echo $rows['activity']; ?></td>
                 </tr>
             <?php

@@ -22,7 +22,14 @@
                         <li><a href="login.php">LOGIN</a></li>
                     </ul>
                 </nav>
-                <a href="register.php"><img src="images/menu.png" class="menu-icon"></a>
+                <div class="menu">
+                    <button class="menu-button">
+                        <img src="images/menu.png" class="menu-icon">
+                    </button>
+                    <div class="menu-content">
+                        <a rel="noopener" target="_blank" href="register.php">Register</a>
+                    </div>
+                </div>
             </div>
         </div>
 

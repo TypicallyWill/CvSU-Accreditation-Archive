@@ -41,7 +41,7 @@ if ($result && mysqli_num_rows($result) > 0) {
     // Debug: Output user level
     echo "User Level: " . $userLevel;
 
-    if ($userLevel == '3') {
+    if ($userLevel == '2' || $userLevel == '3') {
         $college = $row['college'];
 
         switch ($college) {

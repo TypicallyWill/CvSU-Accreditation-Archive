@@ -1,6 +1,5 @@
 <?php
 require('./config.php');
-require('dbConfig.php');
 require('./login_query.php');
 
 $login_url = $client->createAuthUrl();
@@ -35,7 +34,14 @@ if (isset($_GET['code'])) {
                         <li><a href="login.php">LOGIN</a></li>
                     </ul>
                 </nav>
-                <a href="register.php"><img src="images/menu.png" class="menu-icon"></a>
+                <div class="menu">
+                    <button class="menu-button">
+                        <img src="images/menu.png" class="menu-icon">
+                    </button>
+                    <div class="menu-content">
+                        <a rel="noopener" target="_blank" href="register.php">Register</a>
+                    </div>
+                </div>
             </div>
 
             <div class="sign-in-box">
@@ -50,7 +56,7 @@ if (isset($_GET['code'])) {
                             <img src="https://developers.google.com/identity/images/g-logo.png">
                         </div>
                         <span class="text-container">
-                            <span><a href="<?= $login_url ?>" class="login-url">Sign in with CvSU Account</a></span>
+                            <span><a href="<?= $login_url ?>" class="login-url">Sign in with CvSU account</a></span>
                         </span>
                     </div>
                 </div>

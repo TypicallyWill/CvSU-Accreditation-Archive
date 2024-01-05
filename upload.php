@@ -48,12 +48,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $file_area = $_POST["area"];
                 $owner_email = $email;
                 $file_tags = $_POST["tags"]; // Get file tags from the form
+                $valid_until = isset($_POST["validUntil"]) ? $_POST["validUntil"] : null; // New input for "Valid Until"
 
-                // Escape the file_tags to prevent SQL injection
+                // Escape the file_tags and valid_until to prevent SQL injection
                 $escaped_file_tags = $db_connection->real_escape_string($file_tags);
-
-                // Escape the file_tags to prevent SQL injection
-                $escaped_file_tags = $db_connection->real_escape_string($file_tags);
+                $escaped_valid_until = $db_connection->real_escape_string($valid_until);
 
                 // Remove unexpected characters from file_tags and separate tags with commas
                 $cleaned_file_tags = preg_replace('/[^a-zA-Z0-9,\s]/', '', $escaped_file_tags);
@@ -61,8 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Remove leading and trailing commas
                 $cleaned_file_tags = trim($cleaned_file_tags, ',');
 
-                $sql = "INSERT INTO files (file_name, file_size, file_type, file_owner, file_directory, file_course, file_area, owner_email, file_tags) VALUES ('$file_name', '$file_size', '$file_type', '$file_owner', '$file_directory', '$file_course', '$file_area', '$owner_email', '$cleaned_file_tags')";
-
+                $sql = "INSERT INTO files (file_name, file_size, file_type, file_owner, file_directory, file_course, file_area, owner_email, file_tags, valid_until) VALUES ('$file_name', '$file_size', '$file_type', '$file_owner', '$file_directory', '$file_course', '$file_area', '$owner_email', '$cleaned_file_tags', '$escaped_valid_until')";
 
                 if ($db_connection->query($sql) === TRUE) {
                     // Retrieve college of the current user from users table

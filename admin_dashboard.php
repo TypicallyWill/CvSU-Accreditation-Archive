@@ -8,12 +8,30 @@ require('./config.php');
 
 $client->setAccessToken($_SESSION['token']);
 
-if($client->isAccessTokenExpired()){
+if($client->isAccessTokenExpired()) {
   header('Location: logout.php');
   exit;
 }
+
 $google_oauth = new Google_Service_Oauth2($client);
 $user_info = $google_oauth->userinfo->get();
+
+/// Function to get user level
+function getUserLevel() {
+  global $user_info, $mysqli;
+
+  // Assuming your users table has a 'user_level' column
+  $email = $user_info['email'];
+  $result = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
+
+  if ($result && $result->num_rows > 0) {
+      $row = $result->fetch_assoc();
+      return $row['user_level'];
+  } else {
+      // Default user level if not found
+      return 0;
+  }
+}
 
 $user = 'root';
 $password = '';
@@ -35,10 +53,13 @@ if ($mysqli->connect_error) {
 $email = $user_info['email'];
 $first_name = $user_info['givenName'];
 $last_name = $user_info['familyName'];
+$file_owner = $first_name . " " . $last_name;
  
 // SQL query to select data from database
 $sql = " SELECT * FROM users WHERE email = '$email' && first_name = '$first_name' && last_name = '$last_name' ";
+$sql1 = " SELECT * FROM files WHERE upload_date <= DATE_ADD(CURRENT_DATE, INTERVAL -5 YEAR ) ORDER BY id ASC ";
 $result = $mysqli->query($sql);
+$result1 = $mysqli->query($sql1);
 $mysqli->close();
 ?>
 <!DOCTYPE html>
@@ -51,12 +72,102 @@ $mysqli->close();
         <link rel="stylesheet" type="text/css" href="styles/style4.css" />
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 
+        <style>
+          .file-query {
+            background: linear-gradient(rgba(255, 255, 255, .7), rgba(255, 255, 255, .7));
+            border-collapse: collapse;
+            z-index: 0;
+          }
+          th, td {
+            padding: 8px;
+            border-bottom: 1px solid #000;
+            text-align: left;
+            cursor: default;
+          }
+
+          td {
+            color: red;
+          }
+
+          .results:hover {
+            background: linear-gradient(rgba(0, 0, 0, .1), rgba(0, 0, 0, .1));
+          }
+        </style>
+
     </head>
   <body>
 
     <div class="container-fluid">
 
-      <div class="nav-bar">
+      <div id="main" class="main">
+        <div class="profile-box">
+          <div id="sidenav" class="sidenav">
+            <span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776;</span>
+          </div>
+          <div class="profile-boxx">
+          <div class="profile-info">
+            <p class="profile-label" style="margin-left:12px;font-size:40px;color:#174a21;cursor:default;"><b>PROFILE</b></p>
+          <?php
+            while($rows=$result->fetch_assoc())
+            {
+          ?>
+            <ul>
+              <li class="profile-pic"><img class="pic" src="<?=$user_info['picture'];?>" referrerpolicy="no-referrer" width="150px" height="150px"></li>
+              <li style="cursor:default;font-size:15px;"><strong>Full Name:</strong> <?=$user_info['givenName'];?> <?=$user_info['familyName'];?></li>
+              <li style="cursor:default;font-size:15px;"><strong>Email:</strong> <?=$user_info['email'];?></li>
+              <li style="cursor:default;font-size:15px;"><strong>User Level:</strong> Administrator</li>
+            </ul>
+          <?php
+            }
+          ?>
+          </div>
+        </div>
+      </div>
+
+      <div class="outdated-part">
+        <div class="outdated-box">
+          <div class="outdated-boxx">
+		      <div class="alert alert-info" style="margin-top:10px;width: 300px;margin-left:10px;background:linear-gradient(rgba(255, 0, 0, 0.7), rgba(255, 0, 0, 0.7));color: #fff;cursor:default;">
+            <b>OUTDATED FILES</b>
+          </div>
+          <section>
+            <table class="file-query">
+                <tr>
+                    <th>ID</th>
+                    <th>NAME</th>
+                    <th>OWNER</th>
+                    <th>DATE UPLOADED</th>
+                    <th>VALID UNTIL</th>
+                    <th>COLLEGE</th>
+                    <th>COURSE</th>
+                    <th>TAGS</th>
+                </tr>
+
+                <?php
+                    while($rows=$result1->fetch_assoc())
+                    {
+                ?>
+                <tr class="results">
+                    <td><?php echo $rows['id'];?></td>
+                    <td><?php echo $rows['file_name'];?></td>
+                    <td><?php echo $rows['file_owner'];?></td>
+                    <td><?php echo $rows['upload_date'];?></td>
+                    <td><?php echo $rows['valid_until'];?></td>
+                    <td><?php echo $rows['file_directory'];?></td>
+                    <td><?php echo $rows['file_course'];?></td>
+                    <td><?php echo $rows['file_tags']?></td>
+                </tr>
+                <?php
+                    }
+                ?>
+            </table>
+        </section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-bar">
         <img src="images/cvsu-logo.png" class="logo">
           <p class="title">CvSU Accreditation Archive System</p>
         <div class="menu">
@@ -64,11 +175,12 @@ $mysqli->close();
             <img src="<?=$user_info['picture'];?>" referrerpolicy="no-referrer" class="menu-icon">
           </button>
           <div class="menu-content">
-          <a href="profile_directory.php">Profile</a>
+            <a href="admin_dashboard.php">Profile</a>
             <a href="uploaded_files.php">Uploaded Files</a>
-            <a href="users.php">Users</a>
-            <a href="logs.php">User Activity</a>
-            <a href="#" data-toggle="modal" data-target="#logout">Sign out</a>
+            <a href="outdated_files.php">Outdated Files</a>
+            <a href="user_list.php">User List</a>
+            <a href="logs.php">Activity Logs</a>
+            <a href="#" data-toggle="modal" data-target="#logout">Sign Out</a>
           </div>
         </div>
       </div>
@@ -88,37 +200,7 @@ $mysqli->close();
           <a href="com.php">College of Medicine</a>
           <a href="graduate_school.php">Graduate School and Open Learning College</a>
         </div>
-
       </div>
-
-      <div id="main" class="main">
-        <div class="profile-box">
-          <div id="sidenav" class="sidenav">
-            <span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776;</span>
-          </div>
-          <div class="profile-boxx">
-          <div class="profile-info">
-          <?php
-            while($rows=$result->fetch_assoc())
-            {
-          ?>
-            <ul>
-              <li class="profile-pic"><img class="pic" src="<?=$user_info['picture'];?>" referrerpolicy="no-referrer" width="150" height="150"></li>
-              <li><strong>ID:</strong> <?=$user_info['id'];?></li>
-              <li><strong>Full Name:</strong> <?=$user_info['givenName'];?> <?=$user_info['familyName'];?></li>
-              <li><strong>Email:</strong> <?=$user_info['email'];?></li>
-              <li><strong>Gender:</strong> <?php echo $rows['gender'];?></li>
-              <li><strong>Birthday:</strong> <?php echo $rows['birthdate'];?></li>
-              <li><strong>College:</strong> <?php echo $rows['college'];?></li>
-              <li><strong>User Level:</strong> Administrator</li>
-            </ul>
-          <?php
-            }
-          ?>
-        </div>
-          </div>
-      </div>
-    </div>
 
  <!-- Modal logout -->
  <div class="modal fade" id="logout" role="dialog">

@@ -56,57 +56,18 @@ function performLogin($client, $db_connection, $email)
         $log_activity_query->execute();
 
         switch ($_SESSION['user_level']) {
-            case '1':
+            case '0':
                 header('Location: admin_dashboard.php');
                 exit;
-            case '2':
+            case '1':
                 header('Location: ido_dashboard.php');
                 exit;
+            case '2':
+                header('Location: faculty_dashboard.php');
+                exit;
             case '3':
-                // Check user's college and redirect accordingly
-                $college = $user_data['college'];
-                switch ($college) {
-                    case 'CAFENR':
-                        header('Location: cafenr.php');
-                        exit;
-                    case 'CAS':
-                        header('Location: cas.php');
-                        exit;
-                    case 'CCJ':
-                        header('Location: ccj.php');
-                        exit;
-                    case 'CED':
-                        header('Location: ced.php');
-                        exit;
-                    case 'CEMDS':
-                        header('Location: cemds.php');
-                        exit;
-                    case 'CEIT':
-                        header('Location: ceit.php');
-                        exit;
-                    case 'CON':
-                        header('Location: nursing.php');
-                        exit;
-                    case 'CSPEAR':
-                        header('Location: cspear.php');
-                        exit;
-                    case 'CVMBS':
-                        header('Location: cvmbs.php');
-                        exit;
-                    case 'College of Medicine':
-                        header('Location: com.php');
-                        exit;
-                    case 'Graduate School':
-                        header('Location: graduate_school.php');
-                        exit;
-                    // Add more cases for other colleges as needed
-                    default:
-                        echo "<script>
-                                alert('Error: This account is not assigned to a specific college.');
-                                window.location.href = 'login.php';
-                              </script>";
-                        exit;
-                }
+                header('Location: profile.php');
+                exit;
             default:
                 echo "<script>
                         alert('Error: This account is not authorized to access the system.');

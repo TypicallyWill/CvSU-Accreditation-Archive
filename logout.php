@@ -51,6 +51,9 @@ if (ini_get("session.use_cookies")) {
         $params["secure"], $params["httponly"]
     );
 }
+else {
+    header("Location: index.php");
+}
 
 session_destroy();
 header("Location: index.php");

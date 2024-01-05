@@ -1,4 +1,4 @@
-<?php
+<?php   
 session_start();
 
 if (!isset($_SESSION['token'])) {
@@ -8,51 +8,58 @@ if (!isset($_SESSION['token'])) {
 
 require('./config.php');
 
-$client->setAccessToken($_SESSION['token']);
+ include './dbconfig.php';  
 
-if ($client->isAccessTokenExpired()) {
-    header('Location: logout.php');
-    exit;
+ $client = new Google\Client();
+ $client->setAccessToken($_SESSION['token']);
+ 
+ $google_oauth = new Google_Service_Oauth2($client);
+ $user_info = $google_oauth->userinfo->get();
+ 
+ $owner_email = $user_info['email'];
+
+ $db_host = 'localhost';
+ $db_user = 'root';
+ $db_password = '';
+ $db_name = 'cvsuaccr_db';
+
+ $db_connection = new mysqli($db_host, $db_user, $db_password, $db_name);
+
+ if($db_connection->error){
+    die ("Connection Failed - ".$db_connection->connect_error);
 }
 
-$google_oauth = new Google_Service_Oauth2($client);
-$user_info = $google_oauth->userinfo->get();
+// Check if the id is provided
+if (isset($_POST['id'])) {
+    // Get the id from the POST request
+    $id = $_POST['id'];
+    $email = $_POST['email'];
 
-$user = 'root';
-$password = '';
+    // Perform the deletion query
+    $sql = "DELETE FROM users WHERE id = '$id'";
 
-$database = 'cvsuaccr_db';
+    if($db_connection->query($sql) === TRUE){
+        // Retrieve college of the current user from users table
+        $retrieve_college_query = $db_connection->prepare("SELECT `college` FROM `users` WHERE `email`=?");
+        $retrieve_college_query->bind_param("s", $owner_email);
+        $retrieve_college_query->execute();
+        $college_result = $retrieve_college_query->get_result();
+        $college_row = $college_result->fetch_assoc();
+        $college = $college_row['college'];
 
-$servername = '127.0.0.1';
-$mysqli = new mysqli($servername, $user, $password, $database);
+        // Log add user activity
+        $activity_message = $owner_email . ' has deleted a user from the database';
+        $log_activity_query = $db_connection->prepare("INSERT INTO `logs` (`email`, `user_level`, `college`, `time`, `activity`) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)");
+        $log_activity_query->bind_param("siss", $owner_email, $_SESSION['user_level'], $college, $activity_message);
+        $log_activity_query->execute();
 
-if ($mysqli->connect_error) {
-    die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
-}
-
-$email = isset($_POST['email']) ? $_POST['email'] : '';
-$query = "SELECT oauth_uid FROM users WHERE email = '$email'";
-$result = $mysqli->query($query);
-
-if ($result) {
-    $row = $result->fetch_assoc();
-    $oauth_uid = $row['oauth_uid'];
-
-    // Perform deletion in the database
-    $deleteQuery = "DELETE FROM users WHERE email = '$email'";
-    $deleteResult = $mysqli->query($deleteQuery);
-
-    if ($deleteResult) {
-        // Additional actions after successful deletion, if needed
-        echo "User deleted successfully!";
+        echo "The user has been deleted from the database.";
     } else {
-        // Handle deletion failure
-        echo "Error deleting user: " . $mysqli->error;
+        echo "Sorry, there was an error deleting the user: " . $db_connection->error;
     }
-} else {
-    // Handle query failure
-    echo "Error retrieving user data: " . $mysqli->error;
-}
 
-$mysqli->close();
+} else {
+    // fileId is not provided, handle the error
+    echo "User id not provided";
+}
 ?>

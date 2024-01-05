@@ -48,5 +48,5 @@ $db_connection = new mysqli($db_host, $db_user, $db_password, $db_name);
     } else {
         echo "Sorry, there was an error uploading your file: " . $db_connection->error;
     }
-  header("Location: uploaded_files.php");
+  header('Location: ' . $_SERVER['HTTP_REFERER']);
 ?>

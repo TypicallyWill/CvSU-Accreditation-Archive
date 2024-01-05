@@ -42,24 +42,27 @@ if ($result && mysqli_num_rows($result) > 0) {
     echo "User Level: " . $userLevel;
 
     switch ($_SESSION['user_level']) {
-        case '1':
+        case '0':
             header('Location: admin_dashboard.php');
             exit;
-        case '2':
+        case '1':
             header('Location: ido_dashboard.php');
             exit;
-        case '3':
+        case '2':
             header('Location: faculty_dashboard.php');
+            exit;
+        case '3':
+            header('Location: profile.php');
             exit;
 
             // Add more cases for other colleges as needed
 
-            default:
-                echo "<script>
-                        alert('Error: This account is not assigned to a specific college.');
-                        window.location.href = 'login.php';
-                      </script>";
-                exit;
+        default:
+            echo "<script>
+                alert('Error: This account is not assigned to a specific college.');
+                window.location.href = 'login.php';
+                </script>";
+            exit;
         }
 
 } else {
