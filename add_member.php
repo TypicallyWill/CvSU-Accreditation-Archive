@@ -69,5 +69,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "Sorry, there was an error adding the user: " . $db_connection->error;
     }
 }
-header("Location: user_list.php");
+header("Location: utaskforce_list.php");
 ?>

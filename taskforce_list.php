@@ -36,7 +36,7 @@ $email = $user_info['email'];
 $result2 = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
 $row2 = $result2->fetch_assoc();
 
-if ($row2['user_level'] != '0') {
+if ($row2['user_level'] != '2') {
   echo '<script>alert("The user is not authorized to access this page!");</script>';
   header('Location: login.php');
 }
@@ -56,7 +56,7 @@ if ($result) {
     $row = $result->fetch_assoc();
     $user_level = $row['user_level'];
 
-    if ($user_level == 1 || $user_level == 2 || $user_level == 3) {
+    if ($user_level == 1 ||  $user_level == 3) {
         // Redirect to login.php with an alert message
         echo "<script>
                 alert('You are not authorized.');
@@ -66,7 +66,7 @@ if ($result) {
     }
 } else {
     // Handle the error, such as setting a default user_level
-    $user_level = 0; // Default user_level
+    $user_level = 2; // Default user_level
 }
 
 // Pagination
@@ -84,7 +84,7 @@ $totalRecords1 = $mysqli->query("SELECT COUNT(*) as total FROM access_request")-
 $totalPages1 = ceil($totalRecords1 / $limit1);
  
 // SQL query to select data from database
-$sql = " SELECT * FROM users ORDER BY id ASC ";
+$sql = " SELECT * FROM users WHERE user_level = 3 ORDER BY id ASC ";
 $result = $mysqli->query($sql);
 
 $sql2 = "SELECT * FROM access_request ORDER BY id ASC";
@@ -230,7 +230,7 @@ $mysqli->close();
                             } elseif ($userLevel == 2) {
                                     echo 'College Accreditation Officer';
                             } elseif ($userLevel == 3) {
-                                    echo 'Student';
+                                    echo 'Faculty Member';
                             } else {
                                     echo 'Unknown Role'; 
                             }
@@ -288,7 +288,7 @@ $mysqli->close();
                 <th class="text-center">LAST NAME</th>
                 <th class="text-center">EMAIL</th>
                 <th class="text-center">USER LEVEL</th>
-                <th class="text-center">COLLEGE</th>
+                <th class="text-center">COURSE</th>
                 <th class="text-center">ACTION</th>
             </tr>
         </thead>
@@ -317,7 +317,7 @@ $mysqli->close();
                             }
                          ?>
                     </td>
-                    <td class="text-center"><?php echo $rows['college']; ?></td>
+                    <td class="text-center"><?php echo $rows['course']; ?></td>
                     <td class="text-center">
                       <button class="btn btn-danger btn-delete" style="height:30px;font-size:12px;" type="button" onclick="removeUserRequest(<?php echo $rows['id']; ?>)"><span class="glyphicon glyphicon-trash"></span> Delete</button>
                     </td>
@@ -451,9 +451,7 @@ $mysqli->close();
       <fieldset class="info">
         <legend class="user-level">User Level</legend>
           <select name="userLevel" id="userLevel" onchange="showUserCollege()">
-            <option value="0">Admin</option>
-            <option value="1">IDO</option>
-            <option value="2">College Accreditation Officer</option>
+            <option value="3">Faculty Member</option>
           </select>
       </fieldset>
       <div id="college-selectionn" class="college-selectionn">

@@ -31,6 +31,16 @@ if ($mysqli->connect_error) {
     $mysqli->connect_error);
 }
 
+$email = $user_info['email'];
+
+$result2 = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
+$row2 = $result2->fetch_assoc();
+
+if ($row2['user_level'] != '3') {
+  echo '<script>alert("The user is not authorized to access this page!");</script>';
+  echo '<script>window.location.href = "login.php";</script>';
+}
+
 // getting user info for uploaded files
 $email = $user_info['email'];
 $first_name = $user_info['givenName'];
@@ -115,6 +125,7 @@ $mysqli->close();
               <li style="cursor:default;font-size:15px;"><strong>Full Name:</strong> <?=$user_info['givenName'];?> <?=$user_info['familyName'];?></li>
               <li style="cursor:default;font-size:15px;"><strong>Email:</strong> <?=$user_info['email'];?></li>
               <li style="cursor:default;font-size:15px;"><strong>User Level:</strong> Student</li>
+              <li style="cursor:default;font-size:15px;"><strong>College:</strong> <?=$rows['college'];?></li>
             </ul>
           <?php
             }
@@ -174,7 +185,6 @@ $mysqli->close();
             <img src="<?=$user_info['picture'];?>" referrerpolicy="no-referrer" class="menu-icon">
           </button>
           <div class="menu-content">
-            <a href="profile.php">Profile</a>
             <a href="college_directory.php">College Directory</a>
             <a href="#" data-toggle="modal" data-target="#logout">Sign Out</a>
           </div>

@@ -31,6 +31,17 @@ if ($mysqli->connect_error) {
         $mysqli->connect_error);
 }
 
+$email = $user_info['email'];
+
+$result2 = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
+$row2 = $result2->fetch_assoc();
+$userLevel = $row2['user_level'];
+
+if ($row2['user_level'] != '0' && $row2['user_level'] != '1' && $row2['user_level'] != '2') {
+  echo '<script>alert("The user is not authorized to access this page!");</script>';
+  echo '<script>window.location.href = "login.php";</script>';
+}
+
 $first_name = $user_info['given_name'];
 $last_name = $user_info['family_name'];
 $file_owner = $first_name . " " . $last_name;
@@ -56,16 +67,17 @@ function getUserLevel() {
 
 // Pagination
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$limit = 10; // Number of rows per page set to 10
+$limit = 5; // Number of rows per page set to 5
 $offset = ($page - 1) * $limit; // Corrected offset calculation
 $totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM files WHERE file_owner = '$file_owner' && owner_email = '$owner_email' && CURDATE() > valid_until")->fetch_assoc()['total'];
 $totalPages = ceil($totalRecords / $limit);
 
 // SQL query to select data from database with pagination
 $sql = " SELECT * FROM files WHERE file_owner = '$file_owner' && owner_email = '$owner_email' && CURDATE() > valid_until ORDER BY id ASC ";
-$sql1 = "SELECT * FROM files WHERE valid_until IS NOT NULL AND valid_until <= CURRENT_DATE ORDER BY id ASC";
+$sql1 = "SELECT * FROM files WHERE valid_until IS NOT NULL AND valid_until < CURRENT_DATE ORDER BY id ASC";
 $result = $mysqli->query($sql);
 $result1 = $mysqli->query($sql1);
+$result2 = $mysqli->query($sql);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -73,7 +85,7 @@ $result1 = $mysqli->query($sql1);
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CvSU Accreditation Archive System</title>
-    <link rel="stylesheet" type="text/css" href="styles/style5.css" />
+    <link rel="stylesheet" type="text/css" href="styles/style7.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 
     <style>
@@ -97,7 +109,8 @@ $result1 = $mysqli->query($sql1);
                 </div>
                 <div class="profile-boxx">
                     <div class="col-md-8">
-		            <div class="alert alert-info" style="margin-top:10px;width:350px;margin-left:10px;background:linear-gradient(rgba(255, 0, 0, 0.6), rgba(255, 0, 0, 0.6));color: #fff;cursor:default;"> Outdated Files </div>
+		            <div class="alert alert-info" style="margin-top:10px;width:350px;background:linear-gradient(rgba(255, 0, 0, 0.6), rgba(255, 0, 0, 0.6));color: #fff;cursor:default;"> Outdated Files </div>
+                <input id="userLevel" value="<?php echo $userLevel?>" hidden></input>
             </div>
             
 
@@ -135,14 +148,14 @@ $result1 = $mysqli->query($sql1);
         <table class="file-query table table-bordered table-hover table-striped">
         <thead>
           <tr>
-            <th class="text-center">ID</th>
-            <th class="text-center">NAME</th>
+          <th class="text-center">ID</th>
+            <th class="text-center" style="width: 250px;">NAME</th>
             <th class="text-center" style="width: 125px;">OWNER</th>
             <th class="text-center">DATE UPLOADED</th>
             <th class="text-center">VALID UNTIL</th>
-            <th class="text-center">COLLEGE</th>
-            <th class="text-center">COURSE</th>
-            <th class="text-center">TAGS</th>
+            <th class="text-center" style="width: 150px;">COLLEGE</th>
+            <th class="text-center" style="width: 150px;">COURSE</th>
+            <th class="text-center" style="width: 120px;">TAGS</th>
             <th class="text-center" colspan="3">ACTIONS</th>
           </tr>
         </thead>
@@ -154,7 +167,53 @@ $result1 = $mysqli->query($sql1);
           ?>
           <tr class="results" style="<?php echo (getUserLevel() != 0) ? 'display:none;' : ''; ?>">
               <td class="text-center"><?php echo $rows['id']; ?></td>
-              <td class="text-center"><?php echo substr($rows['file_name'], 0, 30); ?></td>
+              <td class="text-center"><?php echo $rows['file_name']; ?></td>
+              <td class="text-center"><?php echo $rows['file_owner'];?></td>
+              <td class="text-center"><?php echo $rows['upload_date'];?></td>
+              <td class="text-center"><?php echo $rows['valid_until'];?></td>
+              <td class="text-center"><?php echo $rows['file_directory'];?></td>
+              <td class="text-center"><?php echo $rows['file_course'];?></td>
+              <td class="text-center">
+                <?php
+                $tags = explode(',', $rows['file_tags']);
+                $cleanedTags = [];
+
+                foreach ($tags as $tag) {
+                    $tag = trim($tag);
+                    if (!empty($tag)) {
+                        // Remove "×" marks and extra commas
+                        $tag = str_replace('×', '', $tag);
+                        $cleanedTags[] = '' . htmlspecialchars($tag);
+                    }
+                }
+
+                $formattedTags = implode(', ', $cleanedTags);
+                echo rtrim($formattedTags, ' ');
+                ?>
+              </td>
+              <td>
+              <button class="btn btn-primary btn-sm" onclick="openLink('<?php echo $rows['file_viewLink'];?>')"><span class="glyphicon glyphicon-eye-open"></span> View</button>
+                <button class="btn btn-success btn-sm" onclick="openLink('<?php echo $rows['file_downloadLink'];?>')"><span class="glyphicon glyphicon-download-alt"></span> Download</button>
+                <?php
+                  if ($rows['owner_email'] == $email) {
+                  ?>
+                  <button class="btn btn-danger btn-delete" style="height:30px;font-size:12px;" type="button" onclick="handleAuthClick()" data-toggle="modal" data-target="#modal_remove" data-id="<?php echo $fileId;?>" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>"><span class="glyphicon glyphicon-trash"></span> Remove</button>
+                  <?php
+                  }
+                ?>
+              </td>
+            </tr>
+          <?php
+          }
+          ?>
+          <?php
+          while ($rows = $result->fetch_assoc()) {
+            $id = $rows['id'];
+            $fileId = $rows['file_id'];
+          ?>
+            <tr class="results1" style="<?php echo (getUserLevel() != 1) ? 'display:none;' : '';?>">
+              <td class="text-center"><?php echo $rows['id']; ?></td>
+              <td class="text-center"><?php echo $rows['file_name']; ?></td>
               <td class="text-center"><?php echo $rows['file_owner'];?></td>
               <td class="text-center"><?php echo $rows['upload_date'];?></td>
               <td class="text-center"><?php echo $rows['valid_until'];?></td>
@@ -184,7 +243,7 @@ $result1 = $mysqli->query($sql1);
                 <?php
                   if ($rows['owner_email'] == $email) {
                   ?>
-                  <button class="btn btn-danger btn-delete" type="button" onclick="handleAuthClick()" data-toggle="modal" data-target="#modal_remove" data-id="<?php echo $fileId;?>" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>"><span class="glyphicon glyphicon-trash"></span> Remove</button>
+                  <button class="btn btn-danger btn-delete" style="height:30px;font-size:12px;" type="button" onclick="handleAuthClick()" data-toggle="modal" data-target="#modal_remove" data-id="<?php echo $fileId;?>" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>"><span class="glyphicon glyphicon-trash"></span> Remove</button>
                   <?php
                   }
                 ?>
@@ -194,15 +253,16 @@ $result1 = $mysqli->query($sql1);
           }
           ?>
           <?php
-          while ($rows = $result->fetch_assoc()) {
+          while ($rows = $result2->fetch_assoc()) {
             $id = $rows['id'];
             $fileId = $rows['file_id'];
           ?>
-            <tr class="results" style="<?php echo (getUserLevel() != 2) ? 'display:none;' : ''; ?>">
+            <tr class="results2" style="<?php echo (getUserLevel() != 2) ? 'display:none;' : '';?>">
               <td class="text-center"><?php echo $rows['id']; ?></td>
-              <td class="text-center"><?php echo substr($rows['file_name'], 0, 30); ?></td>
+              <td class="text-center"><?php echo $rows['file_name']; ?></td>
               <td class="text-center"><?php echo $rows['file_owner'];?></td>
               <td class="text-center"><?php echo $rows['upload_date'];?></td>
+              <td class="text-center"><?php echo $rows['valid_until'];?></td>
               <td class="text-center"><?php echo $rows['file_directory'];?></td>
               <td class="text-center"><?php echo $rows['file_course'];?></td>
               <td class="text-center">
@@ -224,9 +284,16 @@ $result1 = $mysqli->query($sql1);
                 ?>
               </td>
               <td>
+              <button class="btn btn-info btn-sm" onclick="copyLink('<?php echo $rows['file_viewLink'];?>')"><span class="glyphicon glyphicon glyphicon-copy"></span> Copy Link</button>
                 <button class="btn btn-primary btn-sm" onclick="window.location.href='<?php echo $rows['file_viewLink'];?>'"><span class="glyphicon glyphicon-eye-open"></span> View</button>
                 <button class="btn btn-success btn-sm" onclick="window.location.href='<?php echo $rows['file_downloadLink'];?>'"><span class="glyphicon glyphicon-download-alt"></span> Download</button>
-                <button class="btn btn-danger btn-delete" type="button" onclick="handleAuthClick()" data-toggle="modal" data-target="#modal_remove" data-id="<?php echo $fileId;?>"><span class="glyphicon glyphicon-trash"></span> Remove</button>
+                <?php
+                  if ($rows['owner_email'] == $email) {
+                  ?>
+                  <button class="btn btn-danger btn-delete" style="height:30px;font-size:12px;" type="button" onclick="handleAuthClick()" data-toggle="modal" data-target="#modal_remove" data-id="<?php echo $fileId;?>" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>"><span class="glyphicon glyphicon-trash"></span> Remove</button>
+                  <?php
+                  }
+                ?>
               </td>
             </tr>
           <?php
@@ -234,19 +301,26 @@ $result1 = $mysqli->query($sql1);
           ?>
         </tbody>
     </table>
-     <!-- Pagination -->
-<div class="pagination">
+<!-- Modified Pagination -->
+<div class="pagination-container">
     <?php if ($page > 1): ?>
-        <a href="?page=<?php echo $page - 1; ?>">Previous</a>
+        <a href="?page=<?php echo $page - 1; ?>" class="pagination-link">Previous</a>
     <?php endif; ?>
 
-    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-        <a href="?page=<?php echo $i; ?>" <?php echo ($i == $page) ? 'class="active"' : ''; ?>><?php echo $i; ?></a>
-    <?php endfor; ?>
+    <div class="pagination-info">
+        <span>Page <?php echo $page; ?> of <?php echo $totalPages; ?></span>
+    </div>
 
     <?php if ($page < $totalPages): ?>
-        <a href="?page=<?php echo $page + 1; ?>">Next</a>
+        <a href="?page=<?php echo $page + 1; ?>" class="pagination-link">Next</a>
     <?php endif; ?>
+
+    <!-- Page input field -->
+    <form action="" method="GET" class="pagination-form">
+        <label for="pageInput" class="pagination-label">Go to Page:</label>
+        <input type="number" id="pageInput" name="page" min="1" max="<?php echo $totalPages; ?>" value="<?php echo $page; ?>" class="pagination-input">
+        <button type="submit" class="pagination-button">Go</button>
+    </form>
 </div>
 
 </section>
@@ -377,8 +451,8 @@ $result1 = $mysqli->query($sql1);
       </div>
       <div class="modal-footer">
         <a type="button" class="btn btn-success" data-dismiss="modal">No</a>
-        <button type="button" class="btn btn-danger" onclick="deleteFile('<?php echo $fileId;?>');delayDelete();" data-dismiss="modal">Yes</button>
-        <button class="remove-db" id="removeDb" type="button" onclick="removeFromDb('<?php echo $fileId;?>')" hidden></button>
+        <button type="button" class="btn btn-danger btn-del" data-dismiss="modal">Yes</button>
+        <button class="remove-db" id="removeDb" type="button" hidden></button>
       </div>
     </div>
   </div>
@@ -390,32 +464,84 @@ $result1 = $mysqli->query($sql1);
 
 
   <script>
+    function openLink(link) {
+      window.open(link, "_blank");
+    }
+
+    var userLevel = document.getElementById('userLevel').value;
+
     // search function for search box
     function search() {
         // Get input value and convert to lowercase for case-insensitive search
         var input = document.getElementById('searchInput').value.toLowerCase();
 
-        // Get the table rows
-        var rows = document.querySelectorAll('.file-query tbody tr.results');
+        if (userLevel == 0) {
+          // Get the table rows
+          var rows = document.querySelectorAll('.file-query tbody tr.results');
 
-        // Loop through each row
-        rows.forEach(function (row) {
-            var rowText = row.innerText.toLowerCase();
-            var displayStyle = 'none';
+          // Loop through each row
+          rows.forEach(function (row) {
+              var rowText = row.innerText.toLowerCase();
+              var displayStyle = 'none';
 
-            // If the search input is empty, show all results
-            if (input === '') {
-                displayStyle = '';
-            } else {
-                // Check if the row text includes the search input
-                if (rowText.includes(input)) {
-                    displayStyle = '';
-                }
-            }
+              // If the search input is empty, show all results
+              if (input === '') {
+                  displayStyle = '';
+              } else {
+                  // Check if the row text includes the search input
+                  if (rowText.includes(input)) {
+                      displayStyle = '';
+                  }
+              }
 
-            // Set the display style for the row
-            row.style.display = displayStyle;
-        });
+              // Set the display style for the row
+              row.style.display = displayStyle;
+          });
+        } else if (userLevel == 1) {
+          // Get the table rows
+          var rows = document.querySelectorAll('.file-query tbody tr.results1');
+
+          // Loop through each row
+          rows.forEach(function (row) {
+              var rowText = row.innerText.toLowerCase();
+              var displayStyle = 'none';
+
+              // If the search input is empty, show all results
+              if (input === '') {
+                  displayStyle = '';
+              } else {
+                  // Check if the row text includes the search input
+                  if (rowText.includes(input)) {
+                      displayStyle = '';
+                  }
+              }
+
+              // Set the display style for the row
+              row.style.display = displayStyle;
+          });
+        } else if (userLevel == 2) {
+          // Get the table rows
+          var rows = document.querySelectorAll('.file-query tbody tr.results2');
+
+          // Loop through each row
+          rows.forEach(function (row) {
+              var rowText = row.innerText.toLowerCase();
+              var displayStyle = 'none';
+
+              // If the search input is empty, show all results
+              if (input === '') {
+                  displayStyle = '';
+              } else {
+                  // Check if the row text includes the search input
+                  if (rowText.includes(input)) {
+                      displayStyle = '';
+                  }
+              }
+
+              // Set the display style for the row
+              row.style.display = displayStyle;
+          });
+        }
     }
 
     function copyLink(link) {
@@ -566,6 +692,41 @@ $result1 = $mysqli->query($sql1);
     </script>
 
     <script>
+
+        // Get the button and modal elements
+        var openModalButton = document.querySelectorAll('.btn-delete');
+        var modal = document.getElementById('modal_remove');
+        var buttonInsideModal = document.querySelector('.btn-del');
+
+        // Attach a click event listener to each button
+        openModalButton.forEach(function(button) {
+            button.addEventListener('click', function() {
+              // Get the data-id attribute value of the clicked button
+              var dataId = button.getAttribute('data-id');
+
+              // Open the modal and pass the data-id
+              showModalWithDataId(dataId);
+            });
+        });
+
+        // Function to show the modal with data-id parameter
+        function showModalWithDataId(dataId) {
+
+
+          // Display or manipulate the modal as needed
+          modal.style.display = 'block';
+
+          // Attach a click event listener to the button inside the modal
+        buttonInsideModal.addEventListener('click', function() {
+          // Use the data-id inside the modal as needed
+          deleteFile(dataId);
+          setTimeout(function() {
+            removeFromDb(dataId);
+          }, 3000);
+          console.log('The file ID of the deleted file: ', dataId);
+        });
+        }
+
         function deleteFromDrive() {
           document.getElementById('removeFromDrive').click();
         }

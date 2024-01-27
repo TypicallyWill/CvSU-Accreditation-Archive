@@ -59,28 +59,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // Remove leading and trailing commas
                 $cleaned_file_tags = trim($cleaned_file_tags, ',');
+                
+                // Use a prepared statement to prevent SQL injection
+                $stmt = $db_connection->prepare("SELECT * FROM files WHERE file_name = ?");
+                $stmt->bind_param("s", $file_name);
+                $stmt->execute();
 
-                $sql = "INSERT INTO files (file_name, file_size, file_type, file_owner, file_directory, file_course, file_area, owner_email, file_tags, valid_until) VALUES ('$file_name', '$file_size', '$file_type', '$file_owner', '$file_directory', '$file_course', '$file_area', '$owner_email', '$cleaned_file_tags', '$escaped_valid_until')";
+                // Get the result
+                $result = $stmt->get_result();
 
-                if ($db_connection->query($sql) === TRUE) {
-                    // Retrieve college of the current user from users table
-                    $retrieve_college_query = $db_connection->prepare("SELECT `college` FROM `users` WHERE `email`=?");
-                    $retrieve_college_query->bind_param("s", $email);
-                    $retrieve_college_query->execute();
-                    $college_result = $retrieve_college_query->get_result();
-                    $college_row = $college_result->fetch_assoc();
-                    $college = $college_row['college'];
-
-                    // Log file upload activity
-                    $activity_message = $email . ' has uploaded a file: ' . $file_name . ' at ' . $file_directory;
-                    $log_activity_query = $db_connection->prepare("INSERT INTO `logs` (`email`, `user_level`, `college`, `time`, `activity`) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)");
-                    $log_activity_query->bind_param("siss", $email, $_SESSION['user_level'], $college, $activity_message);
-                    $log_activity_query->execute();
-
-                    echo "The file " . basename($_FILES["file"]["name"]) . " has been uploaded in the database.";
+                // Check if the file exists in the database
+                if ($result->num_rows > 0) {
+                    echo "File '$file_name' already exists in the database.";
                 } else {
-                    echo "Sorry, there was an error uploading your file: " . $db_connection->error;
+                    $sql = "INSERT INTO files (file_name, file_size, file_type, file_owner, file_directory, file_course, file_area, owner_email, file_tags, valid_until) VALUES ('$file_name', '$file_size', '$file_type', '$file_owner', '$file_directory', '$file_course', '$file_area', '$owner_email', '$cleaned_file_tags', '$escaped_valid_until')";
+
+                    if ($db_connection->query($sql) === TRUE) {
+                        // Retrieve college of the current user from users table
+                        $retrieve_college_query = $db_connection->prepare("SELECT `college` FROM `users` WHERE `email`=?");
+                        $retrieve_college_query->bind_param("s", $email);
+                        $retrieve_college_query->execute();
+                        $college_result = $retrieve_college_query->get_result();
+                        $college_row = $college_result->fetch_assoc();
+                        $college = $college_row['college'];
+    
+                        // Log file upload activity
+                        $activity_message = $email . ' has uploaded a file: ' . $file_name . ' at ' . $file_directory;
+                        $log_activity_query = $db_connection->prepare("INSERT INTO `logs` (`email`, `user_level`, `college`, `time`, `activity`) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)");
+                        $log_activity_query->bind_param("siss", $email, $_SESSION['user_level'], $college, $activity_message);
+                        $log_activity_query->execute();
+    
+                        echo "The file " . basename($_FILES["file"]["name"]) . " has been uploaded in the database.";
+                    } else {
+                        echo "Sorry, there was an error uploading your file: " . $db_connection->error;
+                    }
                 }
+
+                // Close the prepared statement
+                $stmt->close();
             }
         }
     } else {

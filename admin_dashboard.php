@@ -49,6 +49,16 @@ if ($mysqli->connect_error) {
     $mysqli->connect_error);
 }
 
+$email = $user_info['email'];
+
+$result2 = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
+$row2 = $result2->fetch_assoc();
+
+if ($row2['user_level'] != '0') {
+  echo '<script>alert("The user is not authorized to access this page!");</script>';
+  header('Location: login.php');
+}
+
 // getting user info for uploaded files
 $email = $user_info['email'];
 $first_name = $user_info['givenName'];
@@ -57,7 +67,7 @@ $file_owner = $first_name . " " . $last_name;
  
 // SQL query to select data from database
 $sql = " SELECT * FROM users WHERE email = '$email' && first_name = '$first_name' && last_name = '$last_name' ";
-$sql1 = " SELECT * FROM files WHERE upload_date <= DATE_ADD(CURRENT_DATE, INTERVAL -5 YEAR ) ORDER BY id ASC ";
+$sql1 = " SELECT * FROM files WHERE valid_until IS NOT NULL AND valid_until < CURRENT_DATE ORDER BY id ASC ";
 $result = $mysqli->query($sql);
 $result1 = $mysqli->query($sql1);
 $mysqli->close();
@@ -77,11 +87,17 @@ $mysqli->close();
             background: linear-gradient(rgba(255, 255, 255, .7), rgba(255, 255, 255, .7));
             border-collapse: collapse;
             z-index: 0;
+            width: 765px;
           }
           th, td {
             padding: 8px;
-            border-bottom: 1px solid #000;
-            text-align: left;
+            border: 1px solid #ddd;
+            text-align: center;
+          }
+
+          th {
+            background-color: #af514c;
+            color: white;
             cursor: default;
           }
 
@@ -106,16 +122,16 @@ $mysqli->close();
           </div>
           <div class="profile-boxx">
           <div class="profile-info">
-            <p class="profile-label" style="margin-left:12px;font-size:40px;color:#174a21;cursor:default;"><b>PROFILE</b></p>
+            <p class="profile-label" style="margin-left:12px;font-size:40px;color:#174a21;cursor:default;margin-top:10px;"><b>PROFILE</b></p>
           <?php
             while($rows=$result->fetch_assoc())
             {
           ?>
             <ul>
-              <li class="profile-pic"><img class="pic" src="<?=$user_info['picture'];?>" referrerpolicy="no-referrer" width="150px" height="150px"></li>
-              <li style="cursor:default;font-size:15px;"><strong>Full Name:</strong> <?=$user_info['givenName'];?> <?=$user_info['familyName'];?></li>
-              <li style="cursor:default;font-size:15px;"><strong>Email:</strong> <?=$user_info['email'];?></li>
-              <li style="cursor:default;font-size:15px;"><strong>User Level:</strong> Administrator</li>
+              <li class="profile-pic" style="text-align:center;margin-right:40px;margin-bottom:20px;"><img class="pic" src="<?=$user_info['picture'];?>" referrerpolicy="no-referrer" width="150px" height="150px"></li>
+              <li style="cursor:default;font-size:15px;text-align:center;margin-right:40px;margin-bottom:20px;"><strong>Full Name:</strong> <?=$user_info['givenName'];?> <?=$user_info['familyName'];?></li>
+              <li style="cursor:default;font-size:15px;text-align:center;margin-right:40px;margin-bottom:20px;"><strong>Email:</strong> <?=$user_info['email'];?></li>
+              <li style="cursor:default;font-size:15px;text-align:center;margin-right:40px;margin-bottom:20px;"><strong>User Level:</strong> Administrator</li>
             </ul>
           <?php
             }
@@ -127,7 +143,7 @@ $mysqli->close();
       <div class="outdated-part">
         <div class="outdated-box">
           <div class="outdated-boxx">
-		      <div class="alert alert-info" style="margin-top:10px;width: 300px;margin-left:10px;background:linear-gradient(rgba(255, 0, 0, 0.7), rgba(255, 0, 0, 0.7));color: #fff;cursor:default;">
+		        <div class="alert alert-info" style="margin-top:10px;width: 300px;margin-left:10px;background:linear-gradient(rgba(255, 0, 0, 0.7), rgba(255, 0, 0, 0.7));color: #fff;cursor:default;">
             <b>OUTDATED FILES</b>
           </div>
           <section>
@@ -137,9 +153,7 @@ $mysqli->close();
                     <th>NAME</th>
                     <th>OWNER</th>
                     <th>DATE UPLOADED</th>
-                    <th>VALID UNTIL</th>
                     <th>COLLEGE</th>
-                    <th>COURSE</th>
                     <th>TAGS</th>
                 </tr>
 
@@ -149,13 +163,28 @@ $mysqli->close();
                 ?>
                 <tr class="results">
                     <td><?php echo $rows['id'];?></td>
-                    <td><?php echo $rows['file_name'];?></td>
+                    <td><?php echo substr($rows['file_name'], 0, 40); ?></td>
                     <td><?php echo $rows['file_owner'];?></td>
                     <td><?php echo $rows['upload_date'];?></td>
-                    <td><?php echo $rows['valid_until'];?></td>
                     <td><?php echo $rows['file_directory'];?></td>
-                    <td><?php echo $rows['file_course'];?></td>
-                    <td><?php echo $rows['file_tags']?></td>
+                    <td class="text-center">
+                      <?php
+                      $tags = explode(',', $rows['file_tags']);
+                      $cleanedTags = [];
+
+                      foreach ($tags as $tag) {
+                          $tag = trim($tag);
+                          if (!empty($tag)) {
+                              // Remove "×" marks and extra commas
+                              $tag = str_replace('×', '', $tag);
+                              $cleanedTags[] = '' . htmlspecialchars($tag);
+                          }
+                      }
+
+                      $formattedTags = implode(', ', $cleanedTags);
+                      echo rtrim($formattedTags, ' ');
+                      ?>
+                    </td>
                 </tr>
                 <?php
                     }
@@ -175,7 +204,6 @@ $mysqli->close();
             <img src="<?=$user_info['picture'];?>" referrerpolicy="no-referrer" class="menu-icon">
           </button>
           <div class="menu-content">
-            <a href="admin_dashboard.php">Profile</a>
             <a href="uploaded_files.php">Uploaded Files</a>
             <a href="outdated_files.php">Outdated Files</a>
             <a href="user_list.php">User List</a>

@@ -17,7 +17,7 @@
 
                 <nav>
                     <ul>
-                        <li><a href="index.php">HOME</a></li>
+                        <li><a href="index.php" >HOME</a></li>
                         <li><a href="aboutus.php">ABOUT US</a></li>
                         <li><a href="login.php">LOGIN</a></li>
                     </ul>
@@ -32,9 +32,5 @@
                 </div>
             </div>
         </div>
-
-
-
-
     </body>
 </html>

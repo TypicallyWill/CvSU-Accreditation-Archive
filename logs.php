@@ -31,6 +31,16 @@ if ($mysqli->connect_error) {
         $mysqli->connect_error);
 }
 
+$email = $user_info['email'];
+
+$result2 = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
+$row2 = $result2->fetch_assoc();
+
+if ($row2['user_level'] != '0') {
+  echo '<script>alert("The user is not authorized to access this page!");</script>';
+  echo '<script>window.location.href = "login.php";</script>';
+}
+
 // Fetch user_level from the database for the current user
 $email = $user_info['email'];
 $query = "SELECT user_level FROM users WHERE email = '$email'";
@@ -55,7 +65,7 @@ if ($result) {
 
 // Pagination
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$limit = 10; // Number of rows per page set to 10
+$limit = 7; // Number of rows per page set to 7
 $offset = ($page - 1) * $limit; // Corrected offset calculation
 $totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM logs")->fetch_assoc()['total'];
 $totalPages = ceil($totalRecords / $limit);
@@ -70,7 +80,7 @@ $result = $mysqli->query($sql);
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CvSU Accreditation Archive System</title>
-    <link rel="stylesheet" type="text/css" href="styles/style5.css" />
+    <link rel="stylesheet" type="text/css" href="styles/style9.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 
     <style>
@@ -158,19 +168,26 @@ $result = $mysqli->query($sql);
             ?>
         </tbody>
     </table>
-     <!-- Pagination -->
-<div class="pagination">
+<!-- Modified Pagination -->
+<div class="pagination-container">
     <?php if ($page > 1): ?>
-        <a href="?page=<?php echo $page - 1; ?>">Previous</a>
+        <a href="?page=<?php echo $page - 1; ?>" class="pagination-link">Previous</a>
     <?php endif; ?>
 
-    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-        <a href="?page=<?php echo $i; ?>" <?php echo ($i == $page) ? 'class="active"' : ''; ?>><?php echo $i; ?></a>
-    <?php endfor; ?>
+    <div class="pagination-info">
+        <span>Page <?php echo $page; ?> of <?php echo $totalPages; ?></span>
+    </div>
 
     <?php if ($page < $totalPages): ?>
-        <a href="?page=<?php echo $page + 1; ?>">Next</a>
+        <a href="?page=<?php echo $page + 1; ?>" class="pagination-link">Next</a>
     <?php endif; ?>
+
+    <!-- Page input field -->
+    <form action="" method="GET" class="pagination-form">
+        <label for="pageInput" class="pagination-label">Go to Page:</label>
+        <input type="number" id="pageInput" name="page" min="1" max="<?php echo $totalPages; ?>" value="<?php echo $page; ?>" class="pagination-input">
+        <button type="submit" class="pagination-button">Go</button>
+    </form>
 </div>
 
 </section>
@@ -178,7 +195,6 @@ $result = $mysqli->query($sql);
     </div>
     </div>
 	</div>
-
 
       <div class="side-navigation">
       <div id="mySidenav" class="side-nav-content">

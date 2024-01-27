@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $new_userLevel = $_POST['userLevel'];
     $new_college = $_POST['userCollege'];
 
-    if ($new_userLevel == 2 || $new_userLevel == 3) {
+    if ($new_userLevel == 2) {
         if ($new_college == "") {
             echo "Sorry, please input a college.";
         }

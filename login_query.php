@@ -45,7 +45,7 @@ function performLogin($client, $db_connection, $email)
         }
 
         // Update the active_status to 'online' when the user logs in
-        $update_status_query = $db_connection->prepare("UPDATE `users` SET `active_status`='online' WHERE `email`=?");
+        $update_status_query = $db_connection->prepare("UPDATE `users` SET `active_status`='Online' WHERE `email`=?");
         $update_status_query->bind_param("s", $email);
         $update_status_query->execute();
 

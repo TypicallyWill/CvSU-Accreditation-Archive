@@ -34,7 +34,6 @@ if ($mysqli->connect_error) {
         $mysqli->connect_error);
 }
 
-
 // Function to get user level
 function getUserLevel() {
   global $user_info, $mysqli;
@@ -52,12 +51,14 @@ function getUserLevel() {
   }
 }
 
+// Get the selected course from the form
+$selectedCourse = isset($_GET['course']) ? $_GET['course'] : '';
 
 // Pagination
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$limit = 10; // Number of rows per page set to 10
+$limit = 5; // Number of rows per page set to 5
 $offset = ($page - 1) * $limit; // Corrected offset calculation
-$totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM files WHERE file_directory = 'CEMDS' || file_directory = 'General'")->fetch_assoc()['total'];
+$totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM files WHERE file_directory = 'CEMDS' && CURDATE() <= valid_until || file_directory = 'General' && CURDATE() <= valid_until ")->fetch_assoc()['total'];
 $totalPages = ceil($totalRecords / $limit);
 
 // Get the selected sorting option and order from the form
@@ -69,10 +70,10 @@ if ($sortOption === 'upload_date') {
     // Check if the user selected the order by date old to new
     $dateOrder = ($order === 'desc') ? 'ASC' : 'DESC';
 
-    $sql = "SELECT * FROM files WHERE file_directory = 'CEMDS' || file_directory = 'General' ORDER BY STR_TO_DATE(upload_date, '%Y-%m-%d') $dateOrder LIMIT $limit OFFSET $offset";
+    $sql = "SELECT * FROM files WHERE (file_directory = 'CEMDS' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY STR_TO_DATE(upload_date, '%Y-%m-%d') $dateOrder LIMIT $limit OFFSET $offset";
 } else {
     // For other columns
-    $sql = "SELECT * FROM files WHERE file_directory = 'CEMDS' || file_directory = 'General' ORDER BY $sortOption $order LIMIT $limit OFFSET $offset";
+    $sql = "SELECT * FROM files WHERE (file_directory = 'CEMDS' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY $sortOption $order LIMIT $limit OFFSET $offset";
 }
 
 $result = $mysqli->query($sql);
@@ -102,19 +103,36 @@ $result = $mysqli->query($sql);
                     <span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776;</span>
                 </div>
                 <div class="profile-boxx">
-                    <div class="col-md-8">
-		            <div class="alert alert-info" style="margin-top:10px;width:450px"> CEMDS</div>
+                <div class="col-md-8">
+                    <div class="alert alert-info" style="margin-top: 10px; width: 500px; display: flex; align-items: center;">
+                        <span style="margin-right: 10px;">CEMDS  </span>
+                        <form method="GET">
+                            <select class="form-select" id="fileDirectoryDropdown" name="course" style="width: 400px; padding: 5px; border-radius: 5px;" onchange="this.form.submit()">
+                                <option value="" <?php echo $selectedCourse === '' ? 'selected' : ''; ?>>Select Program</option>
+                                <option value="Bachelor of Science in Office Administration" <?php echo $selectedCourse === 'Bachelor of Science in Office Administration' ? 'selected' : ''; ?>>Bachelor of Science in Office Administration</option>
+                                <option value="Bachelor of Science in Accountancy" <?php echo $selectedCourse === 'Bachelor of Science in Accountancy' ? 'selected' : ''; ?>>Bachelor of Science in Accountancy</option>
+                                <option value="Bachelor of Science in Business Administration" <?php echo $selectedCourse === 'Bachelor of Science in Business Administration' ? 'selected' : ''; ?>>Bachelor of Science in Business Administration</option>
+                                <option value="Bachelor of Science in Economics" <?php echo $selectedCourse === 'Bachelor of Science in Economics' ? 'selected' : ''; ?>>Bachelor of Science in Economics</option>
+                                <option value="Bachelor of Science in Development Management" <?php echo $selectedCourse === 'Bachelor of Science in Development Management' ? 'selected' : ''; ?>>Bachelor of Science in Development Management</option>
+                                <option value="Bachelor of Science in International Studies" <?php echo $selectedCourse === 'Bachelor of Science in International Studies' ? 'selected' : ''; ?>>Bachelor of Science in International Studies</option>
+          
+                            <!-- Add more options based on your requirements -->
+                            </select>
+                        </form>
+                    </div>
+
                 <a href="#" id="authorizationButton" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>" onclick="handleAuthClick()" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-plus"></span> Upload File </a>
                 <input id="user-email" value="<?php echo $owner_email?>" hidden></input>
-                <!-- Add this form element to select sorting option and order -->
-                <form class="sort-form" method="GET">
+                 <!-- Add this form element to select sorting option and order -->
+                 <form class="sort-form" method="GET">
     <label for="sort">Sort By:</label>
     <select class="form-select" name="sort" id="sort">
         <option value="id">ID</option>
         <option value="file_name">Name</option>
         <option value="file_owner">Owner</option>
         <option value="upload_date">Date Uploaded</option>
-        <option value="file_coure">Course</option>
+        <option value="valid_until">Validity</option>
+        <option value="file_course">Course</option>
         <!-- Add more options based on your columns -->
     </select>
 
@@ -162,13 +180,13 @@ $result = $mysqli->query($sql);
         <table class="file-query table table-bordered table-hover table-striped">
         <thead>
           <tr>
-            <th class="text-center">ID</th>
-            <th class="text-center">NAME</th>
+            <th class="text-center" style="width: 250px;">NAME</th>
             <th class="text-center" style="width: 125px;">OWNER</th>
             <th class="text-center">DATE UPLOADED</th>
-            <th class="text-center">COLLEGE</th>
-            <th class="text-center">COURSE</th>
-            <th class="text-center">TAGS</th>
+            <th class="text-center">VALID UNTIL</th>
+            <th class="text-center" style="width: 150px;">COLLEGE</th>
+            <th class="text-center" style="width: 150px;">COURSE</th>
+            <th class="text-center" style="width: 120px;">TAGS</th>
             <th class="text-center" colspan="3">ACTIONS</th>
           </tr>
         </thead>
@@ -196,11 +214,12 @@ $result = $mysqli->query($sql);
                   // Use a class to set the text color based on the conditions
                   $rowClass = $isOlderThan5Years || $isOutdated ? 'color:red' : '';
               ?>
+
             <tr class="results" style="<?php echo $rowClass;?>">
-              <td class="text-center"><?php echo $rows['id']; ?></td>
-              <td class="text-center"><?php echo substr($rows['file_name'], 0, 50); ?></td>
+              <td class="text-center"><?php echo $rows['file_name']; ?></td>
               <td class="text-center"><?php echo $rows['file_owner'];?></td>
               <td class="text-center"><?php echo $rows['upload_date'];?></td>
+              <td class="text-center"><?php echo $rows['valid_until'];?></td>
               <td class="text-center"><?php echo $rows['file_directory'];?></td>
               <td class="text-center"><?php echo $rows['file_course'];?></td>
               <td class="text-center">
@@ -213,44 +232,52 @@ $result = $mysqli->query($sql);
                     if (!empty($tag)) {
                         // Remove "×" marks and extra commas
                         $tag = str_replace('×', '', $tag);
-                        $cleanedTags[] = '#' . htmlspecialchars($tag);
+                        $cleanedTags[] = '' . htmlspecialchars($tag);
                     }
                 }
 
-                $formattedTags = implode(' ', $cleanedTags);
+                $formattedTags = implode(', ', $cleanedTags);
                 echo rtrim($formattedTags, ' ');
                 ?>
               </td>
               <td>
-              <button class="btn btn-primary btn-sm" onclick="openLink('<?php echo $rows['file_viewLink'];?>')"><span class="glyphicon glyphicon-eye-open"></span> View</button>
-                <button class="btn btn-success btn-sm" onclick="openLink('<?php echo $rows['file_downloadLink'];?>')"><span class="glyphicon glyphicon-download-alt"></span> Download</button>
+              <button class="btn btn-info btn-sm" onclick="copyLink('<?php echo $rows['file_viewLink'];?>')"><span class="glyphicon glyphicon glyphicon-copy"></span></button>
+              <button class="btn btn-primary btn-sm" onclick="openLink('<?php echo $rows['file_viewLink'];?>')"><span class="glyphicon glyphicon-eye-open"></span></button>
+                <button class="btn btn-success btn-sm" onclick="openLink('<?php echo $rows['file_downloadLink'];?>')"><span class="glyphicon glyphicon-download-alt"></span></button>
                 <?php
-                        if ($rows['owner_email'] == $email) {
-                        ?>
-                        <button class="btn btn-danger btn-delete" type="button" onclick="handleAuthClick()" data-toggle="modal" data-target="#modal_remove" data-id="<?php echo $fileId;?>" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>"><span class="glyphicon glyphicon-trash"></span> Remove</button>
-                        <?php
-                        }
-                      ?>
-                    </td>
+                  if ($rows['owner_email'] == $email) {
+                  ?>
+                  <button class="btn btn-danger btn-delete" style="height:30px;font-size:12px;" type="button" onclick="handleAuthClick()" data-toggle="modal" data-target="#modal_remove" data-id="<?php echo $fileId;?>" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>"><span class="glyphicon glyphicon-trash"></span></button>
+                  <?php
+                  }
+                ?>
+              </td>
                 </tr>
             <?php
             }
             ?>
         </tbody>
     </table>
-     <!-- Pagination -->
-<div class="pagination">
+<!-- Modified Pagination -->
+<div class="pagination-container">
     <?php if ($page > 1): ?>
-        <a href="?page=<?php echo $page - 1; ?>">Previous</a>
+        <a href="?page=<?php echo $page - 1; ?>" class="pagination-link">Previous</a>
     <?php endif; ?>
 
-    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-        <a href="?page=<?php echo $i; ?>" <?php echo ($i == $page) ? 'class="active"' : ''; ?>><?php echo $i; ?></a>
-    <?php endfor; ?>
+    <div class="pagination-info">
+        <span>Page <?php echo $page; ?> of <?php echo $totalPages; ?></span>
+    </div>
 
     <?php if ($page < $totalPages): ?>
-        <a href="?page=<?php echo $page + 1; ?>">Next</a>
+        <a href="?page=<?php echo $page + 1; ?>" class="pagination-link">Next</a>
     <?php endif; ?>
+
+    <!-- Page input field -->
+    <form action="" method="GET" class="pagination-form">
+        <label for="pageInput" class="pagination-label">Go to Page:</label>
+        <input type="number" id="pageInput" name="page" min="1" max="<?php echo $totalPages; ?>" value="<?php echo $page; ?>" class="pagination-input">
+        <button type="submit" class="pagination-button">Go</button>
+    </form>
 </div>
 
 </section>
@@ -278,7 +305,7 @@ $result = $mysqli->query($sql);
       </div>
 
 
-      <!-- Modal Upload -->
+          <!-- Modal Upload -->
 <div class="modal fade" id="myModal" role="dialog">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
@@ -289,41 +316,29 @@ $result = $mysqli->query($sql);
         <div class="modal-body">
         <form action="upload.php" method="POST" enctype="multipart/form-data" id="upload" onsubmit="return false;">
         <input type="file" name="file" id="fileInput" accept=".pdf, .docx, .png, .jpg, .jpeg">
+        <br>
         <label for="directories">File Directory:</label>
           <div class="fixed-dropdown">
-              <select name="directories" id="directories" onchange="updateCourseOptions()">
+          <select name="directories" id="directories" onchange="updateCourseOptions();showCourse();" required>
                 <option value=""></option>
                 <option value="CEMDS">CEMDS</option>
                 </select>
             </div>
 
-
-        <label for="course">Course :</label>
-        <div class="fixed-dropdown">
-          <select name="course" id="course">
-            <option value=""></option>
-          </select>
-        </div>
-
-        <br></br>
-        <label for="area">File Area:</label>
-        <div class="fixed-dropdown">
-          <select name="area" id="area">
-            <option value=""></option>
-            <option value="Area 1">Vision, Mission, Goals and Objective</option>
-            <option value="Area 2">Faculty</option>
-            <option value="Area 3">Curricular</option>
-            <option value="Area 4">Support to Students</option>
-            <option value="Area 5">Research</option>
-            <option value="Area 6">Extension and Community Involvement</option>
-            <option value="Area 7">Library</option>
-            <option value="Area 8">Physical Plan and Facilities</option>
-            <option value="Area 9">Laboratories</option>
-            <option value="Area 10">Administration</option>
-          </select>
-        </div>  
+        <br><br>
+        <div class="courses" id="courses">
+            <label for="course">Course :</label>
+            <div class="fixed-dropdown">
+              <select name="course" id="course">
+                <option value=""></option>
+              </select>
+            </div>
+          </div>
+          
+        <br><br>
         <label for="validUntil">Valid Until:</label>
         <input type="date" name="validUntil" id="validUntil" class="form-control">
+        <br>
         <input type="hidden" name="tags" id="hiddenTagsInput" value="">
         <label for="tags">Tags (Press Enter to add a tag):</label>
         <div id="tagsInputContainer" style="display: flex; flex-wrap: wrap; gap: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 5px;"></div>
@@ -338,7 +353,6 @@ $result = $mysqli->query($sql);
     </div>
   </div>
 </div>
-
     
      <!-- Modal logout -->
  <div class="modal fade" id="logout" role="dialog">
@@ -425,6 +439,50 @@ $result = $mysqli->query($sql);
 
       // Alert the copied text
       alert("Copied the link: " + viewLink);
+    }
+
+    function showCourse() {
+      var directories = document.getElementById("directories").value;
+
+      if (directories === "General") {
+        document.getElementById("courses").style.display = "none";
+      }
+      else if (directories === "CAFENR") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else if (directories === "CAS") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else if (directories === "CCJ") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else if (directories === "CED") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else if (directories === "CEIT") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else if (directories === "CEMDS") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else if (directories === "CON") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else if (directories === "CSPEAR") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else if (directories === "CVMBS") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else if (directories === "College of Medicine") {
+        document.getElementById("courses").style.display = "none";
+      }
+      else if (directories === "Graduate School and Open Learning College") {
+        document.getElementById("courses").style.display = "block";
+      }
+      else {
+        document.getElementById("courses").style.display = "none";
+      }
     }
 
     function updateCourseOptions() {
@@ -598,11 +656,10 @@ $result = $mysqli->query($sql);
         // Attach a click event listener to the button inside the modal
       buttonInsideModal.addEventListener('click', function() {
         // Use the data-id inside the modal as needed
-        deleteFile(dataId);
+        deleteFile(userEmail,dataId);
         setTimeout(function() {
           removeFromDb(dataId);
         }, 3000);
-        console.log('The file ID of the deleted file: ', dataId);
       });
       }
       

@@ -136,8 +136,7 @@
             <select name="user_level" id="user_level" onchange="showCollege(); copy3();" required>
             <option value=""></option>
             <option value="1">IDO</option>
-            <option value="2">Faculty</option>
-            <option value="3">Student</option>
+            <option value="2">College Accreditation Officer</option>
         </select>
       </fieldset>
       <div id="college-selection" class="college-selection">
@@ -182,9 +181,6 @@
       var userLevel = document.getElementById("user_level").value;
 
       if (userLevel === "2") {
-        document.getElementById("college-selection").style.display = "block";
-      }
-      else if (userLevel === "3") {
         document.getElementById("college-selection").style.display = "block";
       }
       else {

@@ -18,7 +18,7 @@ $user_info = $google_oauth->userinfo->get();
 $user_email = trim($user_info['email']);
 
 // Update the active_status to 'offline' when the user logs out
-$update_status_query = $db_connection->prepare("UPDATE `users` SET `active_status`='offline' WHERE `email`=?");
+$update_status_query = $db_connection->prepare("UPDATE `users` SET `active_status`='Offline' WHERE `email`=?");
 $update_status_query->bind_param("s", $user_email);
 $update_status_query->execute();
 
