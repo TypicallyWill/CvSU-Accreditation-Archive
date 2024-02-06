@@ -46,37 +46,37 @@ if ($result && mysqli_num_rows($result) > 0) {
 
         switch ($college) {
             case 'CAFENR':
-                header('Location: cafenr.php');
+                header('Location: course.php');
                 exit;
             case 'CAS':
-                header('Location: cas.php');
+                header('Location: course.php');
                 exit;
             case 'CCJ':
-                header('Location: ccj.php');
+                header('Location: course.php');
                 exit;
             case 'CED':
-                header('Location: ced.php');
+                header('Location: course.php');
                 exit;
             case 'CEMDS':
-                header('Location: cemds.php');
+                header('Location: course.php');
                 exit;
             case 'CEIT':
-                header('Location: ceit.php');
+                header('Location: course.php');
                 exit;
             case 'CON':
-                header('Location: nursing.php');
+                header('Location: course.php');
                 exit;
             case 'CSPEAR':
-                header('Location: cspear.php');
+                header('Location: course.php');
                 exit;
             case 'CVMBS':
-                header('Location: cvmbs.php');
+                header('Location: course.php');
                 exit;
             case 'Colege of Medicine':
-                header('Location: com.php');
+                header('Location: course.php');
                 exit;
             case 'Graduate School':
-                header('Location: graduate_school.php');
+                header('Location: course.php');
                 exit;
 
             // Add more cases for other colleges as needed

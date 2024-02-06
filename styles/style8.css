@@ -243,7 +243,7 @@ body {
 .file-query th,
 .file-query td {
     border: 1px solid #ddd;
-    padding: 12px;
+    padding: 8px;
     text-align: center;
 }
 
@@ -278,6 +278,205 @@ body {
 
 .offline {
     background-color: red;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    color: #4CAF50;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.pagination a.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.pagination a:hover:not(.active) {
+    background-color: #ddd;
+}
+
+/* Add the following styles at the end of your existing CSS file */
+
+/* Custom styles for dropdowns */
+.fixed-dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.fixed-dropdown select {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    position: relative; /* Change from absolute to relative */
+    z-index: 1;
+    background-color: #fff;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%;
+    cursor: pointer;
+}
+
+.fixed-dropdown select:hover {
+    border-color: #4CAF50;
+}
+
+.fixed-dropdown select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+/* Optional: Add a transition effect for a smoother appearance */
+.fixed-dropdown select {
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Optional: Style the dropdown options */
+.fixed-dropdown select option {
+    background-color: #fff;
+    color: #333;
+}
+
+/* Optional: Style the dropdown arrow icon */
+.fixed-dropdown select::-ms-expand {
+    display: none;
+}
+
+.fixed-dropdown select:hover::-ms-expand {
+    background-color: #4CAF50;
+}
+
+
+/* Style for the search box */
+#search-box {
+    margin-top: 20px; /* Adjust the margin as needed */
+    margin-bottom: 20px; /* Adjust the margin as needed */
+}
+
+#searchInput {
+    width: 300px; /* Adjust the width as needed */
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* Style for the table */
+.file-query {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.file-query th,
+.file-query td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+.file-query th {
+    background-color: #406a9b;
+    color: white;
+    cursor: default;
+  }
+
+.file-query tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.file-query tr:hover {
+    background-color: #ddd;
+}
+
+/* Style for the table */
+.file-query2 {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.file-query2 th,
+.file-query2 td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+.file-query2 th {
+    background-color: #dc6e3a;
+    color: white;
+    cursor: default;
+  }
+
+.file-query2 tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.file-query2 tr:hover {
+    background-color: #ddd;
+}
+
+
+.results:hover {
+    background: linear-gradient(rgba(0, 0, 0, .1), rgba(0, 0, 0, .1));
+}
+
+/* Style for the pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    color: #406a9b;
+    padding: 10px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.pagination a.active {
+    background-color: #406a9b;
+    color: white;
+}
+
+.pagination a:hover:not(.active) {
+    background-color: #ddd;
+}
+/* Style for the pagination */
+.pagination2 {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination2 a {
+    color: #dc6e3a;
+    padding: 10px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.pagination2 a.active {
+    background-color: #dc6e3a;
+    color: white;
+}
+
+.pagination2 a:hover:not(.active) {
+    background-color: #ddd;
 }
 
 /* Pagination Styles */
@@ -336,130 +535,60 @@ body {
     background-color: #218838;
 }
 
-/* Add the following styles to the end of your existing CSS file */
-
-/* Custom styles for dropdowns */
-.fixed-dropdown {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-}
-
-.fixed-dropdown select {
-    width: 100%;
-    padding: 8px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    position: relative; /* Change from absolute to relative */
-    z-index: 1;
-    background-color: #fff;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path d="M7 10l5 5 5-5z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 10px top 50%;
-    cursor: pointer;
-}
-
-.fixed-dropdown select:hover {
-    border-color: #4CAF50;
-}
-
-.fixed-dropdown select:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
-}
-
-/* Optional: Add a transition effect for a smoother appearance */
-.fixed-dropdown select {
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-/* Optional: Style the dropdown options */
-.fixed-dropdown select option {
-    background-color: #fff;
-    color: #333;
-}
-
-/* Optional: Style the dropdown arrow icon */
-.fixed-dropdown select::-ms-expand {
-    display: none;
-}
-
-.fixed-dropdown select:hover::-ms-expand {
-    background-color: #4CAF50;
-}
-
-/* Style for the search box */
-#search-box {
-    margin-top: 20px; /* Adjust the margin as needed */
-    margin-bottom: 20px; /* Adjust the margin as needed */
-}
-
-#searchInput {
-    width: 300px; /* Adjust the width as needed */
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-
-/* Style for the table */
-.file-query {
-    border-collapse: collapse;
-    width: 100%;
-}
-
-.file-query th,
-.file-query td {
-    border: 1px solid #ddd;
-    padding: 12px;
+/* Pagination Styles */
+.pagination-container2 {
     text-align: center;
-}
-
-.file-query th {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.file-query tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-.file-query tr:hover {
-    background-color: #ddd;
-}
-
-.results:hover {
-    background: linear-gradient(rgba(0, 0, 0, .1), rgba(0, 0, 0, .1));
-}
-
-/* Style for the pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
     margin-top: 20px;
 }
 
-.pagination a {
-    color: #4CAF50;
-    padding: 10px;
+.pagination-link2, .pagination-button2 {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 0 5px;
+    background-color: #007bff;
+    color: #fff;
     text-decoration: none;
-    transition: background-color 0.3s;
+    border-radius: 4px;
 }
 
-.pagination a.active {
-    background-color: #4CAF50;
-    color: white;
+.pagination-link2:hover, .pagination-button2:hover {
+    background-color: #0056b3;
 }
 
-.pagination a:hover:not(.active) {
-    background-color: #ddd;
+.pagination-info2 {
+    display: inline-block;
+    margin: 0 10px;
+    font-size: 16px;
+}
+
+.pagination-form2 {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.pagination-label2 {
+    margin-right: 5px;
+}
+
+.pagination-input2 {
+    width: 50px;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.pagination-button2 {
+    padding: 6px 12px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination-button2:hover {
+    background-color: #218838;
 }
 
 .sort-form {

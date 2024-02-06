@@ -423,7 +423,7 @@ body {
 }
 
 .file-query th {
-    background-color: #4CAF50;
+    background-color: #454545;
     color: white;
 }
 
@@ -447,14 +447,14 @@ body {
 }
 
 .pagination a {
-    color: #4CAF50;
+    color: #454545;
     padding: 10px;
     text-decoration: none;
     transition: background-color 0.3s;
 }
 
 .pagination a.active {
-    background-color: #4CAF50;
+    background-color: #454545;
     color: white;
 }
 

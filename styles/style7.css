@@ -243,7 +243,7 @@ body {
 .file-query th,
 .file-query td {
     border: 1px solid #ddd;
-    padding: 12px;
+    padding: 8px;
     text-align: center;
 }
 
@@ -278,6 +278,27 @@ body {
 
 .offline {
     background-color: red;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    color: #4CAF50;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.pagination a.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.pagination a:hover:not(.active) {
+    background-color: #ddd;
 }
 
 /* Pagination Styles */
@@ -336,7 +357,7 @@ body {
     background-color: #218838;
 }
 
-/* Add the following styles to the end of your existing CSS file */
+/* Add the following styles at the end of your existing CSS file */
 
 /* Custom styles for dropdowns */
 .fixed-dropdown {
@@ -394,6 +415,7 @@ body {
     background-color: #4CAF50;
 }
 
+
 /* Style for the search box */
 #search-box {
     margin-top: 20px; /* Adjust the margin as needed */
@@ -423,9 +445,10 @@ body {
 }
 
 .file-query th {
-    background-color: #4CAF50;
+    background-color: #af514c;
     color: white;
-}
+    cursor: default;
+  }
 
 .file-query tr:nth-child(even) {
     background-color: #f2f2f2;
@@ -447,21 +470,20 @@ body {
 }
 
 .pagination a {
-    color: #4CAF50;
+    color: #af514c;
     padding: 10px;
     text-decoration: none;
     transition: background-color 0.3s;
 }
 
 .pagination a.active {
-    background-color: #4CAF50;
+    background-color: #af514c;
     color: white;
 }
 
 .pagination a:hover:not(.active) {
     background-color: #ddd;
 }
-
 .sort-form {
     display: flex;
     align-items: center;
