@@ -1,44 +1,42 @@
 <?php
+// Include the necessary libraries
+require_once 'path/to/PHPExcel/Classes/PHPExcel.php';
+require_once 'path/to/tcpdf/tcpdf.php';
+
 session_start();
 if (!isset($_SESSION['token'])) {
     header('Location: login.php');
     exit;
 }
-require('./config.php');
 
+require('./config.php');
 $client->setAccessToken($_SESSION['token']);
 
 if ($client->isAccessTokenExpired()) {
     header('Location: logout.php');
     exit;
 }
+
 $google_oauth = new Google_Service_Oauth2($client);
 $user_info = $google_oauth->userinfo->get();
 
 $user = 'root';
 $password = '';
-
 $database = 'cvsuaccr_db';
-
 $servername = '127.0.0.1';
-$mysqli = new mysqli($servername, $user,
-    $password, $database);
+$mysqli = new mysqli($servername, $user, $password, $database);
 
-// Checking for connections
 if ($mysqli->connect_error) {
-    die('Connect Error (' .
-        $mysqli->connect_errno . ') ' .
-        $mysqli->connect_error);
+    die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
 }
 
 $email = $user_info['email'];
-
 $result2 = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
 $row2 = $result2->fetch_assoc();
 
 if ($row2['user_level'] != '0' && $row2['user_level'] != '1' && $row2['user_level'] != '2') {
-  echo '<script>alert("The user is not authorized to access this page!");</script>';
-  echo '<script>window.location.href = "login.php";</script>';
+    echo '<script>alert("The user is not authorized to access this page!");</script>';
+    echo '<script>window.location.href = "login.php";</script>';
 }
 
 $first_name = $user_info['given_name'];
@@ -46,63 +44,94 @@ $last_name = $user_info['family_name'];
 $file_owner = $first_name . " " . $last_name;
 $owner_email = $user_info['email'];
 
-/// Function to get user level
 function getUserLevel() {
-  global $user_info, $mysqli;
-
-  // Assuming your users table has a 'user_level' column
-  $email = $user_info['email'];
-  $result = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
-
-  if ($result && $result->num_rows > 0) {
-      $row = $result->fetch_assoc();
-      return $row['user_level'];
-  } else {
-      // Default user level if not found
-      return 0;
-  }
+    global $user_info, $mysqli;
+    $email = $user_info['email'];
+    $result = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row['user_level'];
+    } else {
+        return 0;
+    }
 }
 
-/// Function to get college
 function getUserCollege() {
-  global $user_info, $mysqli;
-
-  // Assuming your users table has a 'college' column
-  $email = $user_info['email'];
-  $result = $mysqli->query("SELECT college FROM users WHERE email = '$email'");
-
-  if ($result && $result->num_rows > 0) {
-      $row = $result->fetch_assoc();
-      return $row['college'];
-  } else {
-      // Default college if not found
-      return 0;
-  }
+    global $user_info, $mysqli;
+    $email = $user_info['email'];
+    $result = $mysqli->query("SELECT college FROM users WHERE email = '$email'");
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row['college'];
+    } else {
+        return 0;
+    }
 }
 
-// Pagination
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$limit = 5; // Number of rows per page set to 5
-$offset = ($page - 1) * $limit; // Corrected offset calculation
+$limit = 5;
+$offset = ($page - 1) * $limit;
 $totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM files WHERE file_owner = '$file_owner' && owner_email = '$owner_email' && CURDATE() <= valid_until")->fetch_assoc()['total'];
 $totalPages = ceil($totalRecords / $limit);
 
-// Get the selected sorting option and order from the form
 $sortOption = isset($_GET['sort']) ? $_GET['sort'] : 'id';
 $order = isset($_GET['order']) && $_GET['order'] === 'desc' ? 'DESC' : 'ASC';
 
-// If sorting by date, add specific order by clause for date
 if ($sortOption === 'upload_date') {
-    // Check if the user selected the order by date old to new
     $dateOrder = ($order === 'desc') ? 'ASC' : 'DESC';
-
     $sql = "SELECT * FROM files WHERE file_owner = '$file_owner' && owner_email = '$owner_email' && CURDATE() <= valid_until ORDER BY STR_TO_DATE(upload_date, '%Y-%m-%d') $dateOrder LIMIT $limit OFFSET $offset";
 } else {
-    // For other columns
     $sql = "SELECT * FROM files WHERE file_owner = '$file_owner' && owner_email = '$owner_email' && CURDATE() <= valid_until ORDER BY $sortOption $order LIMIT $limit OFFSET $offset";
 }
+
 $result = $mysqli->query($sql);
+
+// Function to generate Excel file
+function generateExcelFile($data) {
+    $objPHPExcel = new PHPExcel();
+    $objPHPExcel->getActiveSheet()->fromArray($data, null, 'A1');
+    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+    $objWriter->save('files_export.xlsx');
+}
+
+// Function to generate PDF file
+function generatePDFFile($data) {
+    $pdf = new TCPDF();
+    $pdf->AddPage();
+
+    $columns = array('Column1', 'Column2', 'Column3'); // Add actual column names
+    $columnWidths = array(40, 40, 40); // Set width according to your data
+
+    foreach ($columns as $key => $column) {
+        $pdf->Cell($columnWidths[$key], 7, $column, 1);
+    }
+    $pdf->Ln();
+
+    foreach ($data as $row) {
+        foreach ($row as $key => $value) {
+            $pdf->Cell($columnWidths[$key], 7, $value, 1);
+        }
+        $pdf->Ln();
+    }
+
+    $pdf->Output('files_export.pdf', 'F');
+}
+
+// Check if export action is triggered
+if (isset($_GET['export']) && ($_GET['export'] == 'excel' || $_GET['export'] == 'pdf')) {
+    $data = array();
+    while ($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
+
+    if ($_GET['export'] == 'excel') {
+        generateExcelFile($data);
+    } elseif ($_GET['export'] == 'pdf') {
+        generatePDFFile($data);
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -187,6 +216,8 @@ $result = $mysqli->query($sql);
       </div>
 
       <section>
+      <a href="?export=excel">Export to Excel</a>
+<a href="?export=pdf">Export to PDF</a>
         <table class="file-query table table-bordered table-hover table-striped">
         <thead>
           <tr>

@@ -1,83 +1,158 @@
 <?php
-session_start();
-if (!isset($_SESSION['token'])) {
-    header('Location: login.php');
-    exit;
-}
-require('./config.php');
-
-$client->setAccessToken($_SESSION['token']);
-
-if ($client->isAccessTokenExpired()) {
-    header('Location: logout.php');
-    exit;
-}
-$google_oauth = new Google_Service_Oauth2($client);
-$user_info = $google_oauth->userinfo->get();
-
-$email = $user_info['email'];
-$owner_email = $user_info['email'];
-
-$user = 'root';
-$password = '';
-
-$database = 'cvsuaccr_db';
-
-$servername = '127.0.0.1';
-$mysqli = new mysqli($servername, $user,
-    $password, $database);
-
-// Checking for connections
-if ($mysqli->connect_error) {
-    die('Connect Error (' .
-        $mysqli->connect_errno . ') ' .
-        $mysqli->connect_error);
-}
-
-// Function to get user level
-function getUserLevel() {
-  global $user_info, $mysqli;
-
-  // Assuming your users table has a 'user_level' column
-  $email = $user_info['email'];
-  $result = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
-
-  if ($result && $result->num_rows > 0) {
-      $row = $result->fetch_assoc();
-      return $row['user_level'];
-  } else {
-      // Default user level if not found
-      return 0;
+  session_start();
+  if (!isset($_SESSION['token'])) {
+      header('Location: login.php');
+      exit;
   }
+
+  require('./config.php');
+
+  $client->setAccessToken($_SESSION['token']);
+
+  if ($client->isAccessTokenExpired()) {
+      header('Location: logout.php');
+      exit;
+  }
+
+  $google_oauth = new Google_Service_Oauth2($client);
+  $user_info = $google_oauth->userinfo->get();
+  $email = $user_info['email'];
+  $owner_email = $user_info['email'];
+
+  $user = 'root';
+  $password = '';
+  $database = 'cvsuaccr_db';
+  $servername = '127.0.0.1';
+  $mysqli = new mysqli($servername, $user, $password, $database);
+
+  if ($mysqli->connect_error) {
+      die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
+  }
+
+  // Function to get user level
+  function getUserLevel() {
+      global $user_info, $mysqli;
+
+      // Assuming your users table has a 'user_level' column
+      $email = $user_info['email'];
+      $result = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
+
+      if ($result && $result->num_rows > 0) {
+          $row = $result->fetch_assoc();
+          return $row['user_level'];
+      } else {
+          // Default user level if not found
+          return 0;
+      }
+  }
+
+// Function to export data to CSV
+function exportToCSV() {
+  global $mysqli;
+
+  // Fetch data from the database
+  $sql = "SELECT * FROM files WHERE file_directory IN ('CEMDS', 'General') AND CURDATE() <= valid_until";
+  $result = $mysqli->query($sql);
+
+  if (!$result) {
+      die('Error in SQL query: ' . $mysqli->error);
+  }
+
+  // Set the CSV filename
+  $csvFilename = 'CEMDS_data.csv';
+
+  // Create a new CSV file
+  $csvFile = fopen('php://output', 'w');
+
+  if (!$csvFile) {
+      die('Error creating CSV file');
+  }
+
+  // Write CSV file headers
+  $headers = array(
+      'Name',
+      'Owner',
+      'Date Uploaded',
+      'Valid Until',
+      'College',
+      'Course',
+      'Tags'
+  );
+  fputcsv($csvFile, $headers);
+
+  // Write data to the CSV file
+  while ($row = $result->fetch_assoc()) {
+      $tags = explode(',', $row['file_tags']);
+      $cleanedTags = [];
+
+      foreach ($tags as $tag) {
+          $tag = trim($tag);
+          if (!empty($tag)) {
+              // Remove "×" marks and extra commas
+              $tag = str_replace('×', '', $tag);
+              $cleanedTags[] = htmlspecialchars($tag);
+          }
+      }
+
+      $formattedTags = implode(', ', $cleanedTags);
+
+      $csvRow = array(
+          $row['file_name'],
+          $row['file_owner'],
+          $row['upload_date'],
+          $row['valid_until'],
+          $row['file_directory'],
+          $row['file_course'],
+          $formattedTags
+      );
+
+      fputcsv($csvFile, $csvRow);
+  }
+
+  // Close the CSV file
+  fclose($csvFile);
+
+  // Set headers to force download
+  header('Content-Type: text/csv');
+  header('Content-Disposition: attachment; filename="' . $csvFilename . '"');
+
+  exit;
 }
 
-// Get the selected course from the form
-$selectedCourse = isset($_GET['course']) ? $_GET['course'] : '';
-
-// Pagination
-$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$limit = 5; // Number of rows per page set to 5
-$offset = ($page - 1) * $limit; // Corrected offset calculation
-$totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM files WHERE file_directory = 'CEMDS' && CURDATE() <= valid_until || file_directory = 'General' && CURDATE() <= valid_until ")->fetch_assoc()['total'];
-$totalPages = ceil($totalRecords / $limit);
-
-// Get the selected sorting option and order from the form
-$sortOption = isset($_GET['sort']) ? $_GET['sort'] : 'id';
-$order = isset($_GET['order']) && $_GET['order'] === 'desc' ? 'DESC' : 'ASC';
-
-// If sorting by date, add specific order by clause for date
-if ($sortOption === 'upload_date') {
-    // Check if the user selected the order by date old to new
-    $dateOrder = ($order === 'desc') ? 'ASC' : 'DESC';
-
-    $sql = "SELECT * FROM files WHERE (file_directory = 'CEMDS' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY STR_TO_DATE(upload_date, '%Y-%m-%d') $dateOrder LIMIT $limit OFFSET $offset";
-} else {
-    // For other columns
-    $sql = "SELECT * FROM files WHERE (file_directory = 'CEMDS' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY $sortOption $order LIMIT $limit OFFSET $offset";
+// Check if the export button is clicked
+if (isset($_GET['export'])) {
+  exportToCSV();
 }
 
-$result = $mysqli->query($sql);
-?>
+  // Continue with the rest of your existing code...
+
+  // Get the selected course from the form
+  $selectedCourse = isset($_GET['course']) ? $_GET['course'] : '';
+
+  // Pagination
+  $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+  $limit = 5; // Number of rows per page set to 5
+  $offset = ($page - 1) * $limit; // Corrected offset calculation
+  $totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM files WHERE file_directory = 'CEMDS' && CURDATE() <= valid_until || file_directory = 'General' && CURDATE() <= valid_until ")->fetch_assoc()['total'];
+  $totalPages = ceil($totalRecords / $limit);
+
+  // Get the selected sorting option and order from the form
+  $sortOption = isset($_GET['sort']) ? $_GET['sort'] : 'id';
+  $order = isset($_GET['order']) && $_GET['order'] === 'desc' ? 'DESC' : 'ASC';
+
+  // If sorting by date, add specific order by clause for date
+  if ($sortOption === 'upload_date') {
+      // Check if the user selected the order by date old to new
+      $dateOrder = ($order === 'desc') ? 'ASC' : 'DESC';
+
+      $sql = "SELECT * FROM files WHERE (file_directory = 'CEMDS' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY STR_TO_DATE(upload_date, '%Y-%m-%d') $dateOrder LIMIT $limit OFFSET $offset";
+  } else {
+      // For other columns
+      $sql = "SELECT * FROM files WHERE (file_directory = 'CEMDS' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY $sortOption $order LIMIT $limit OFFSET $offset";
+  }
+
+  $result = $mysqli->query($sql);
+  ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -274,10 +349,12 @@ $result = $mysqli->query($sql);
 
     <!-- Page input field -->
     <form action="" method="GET" class="pagination-form">
-        <label for="pageInput" class="pagination-label">Go to Page:</label>
-        <input type="number" id="pageInput" name="page" min="1" max="<?php echo $totalPages; ?>" value="<?php echo $page; ?>" class="pagination-input">
-        <button type="submit" class="pagination-button">Go</button>
-    </form>
+      <label for="pageInput" class="pagination-label">Go to Page:</label>
+      <input type="number" id="pageInput" name="page" min="1" max="<?php echo $totalPages; ?>" value="<?php echo $page; ?>" class="pagination-input">
+      <button type="submit" class="pagination-button">Go</button>
+
+      <button type="submit" name="export" class="btn btn-success">Export to Excel</button>
+  </form>
 </div>
 
 </section>

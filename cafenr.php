@@ -1,281 +1,361 @@
-<?php
-session_start();
-if (!isset($_SESSION['token'])) {
-    header('Location: login.php');
-    exit;
-}
-require('./config.php');
-
-$client->setAccessToken($_SESSION['token']);
-
-if ($client->isAccessTokenExpired()) {
-    header('Location: logout.php');
-    exit;
-}
-$google_oauth = new Google_Service_Oauth2($client);
-$user_info = $google_oauth->userinfo->get();
-
-$email = $user_info['email'];
-$owner_email = $user_info['email'];
-
-$user = 'root';
-$password = '';
-
-$database = 'cvsuaccr_db';
-
-$servername = '127.0.0.1';
-$mysqli = new mysqli($servername, $user,
-    $password, $database);
-
-// Checking for connections
-if ($mysqli->connect_error) {
-    die('Connect Error (' .
-        $mysqli->connect_errno . ') ' .
-        $mysqli->connect_error);
-}
-
-// Function to get user level
-function getUserLevel() {
-  global $user_info, $mysqli;
-
-  // Assuming your users table has a 'user_level' column
-  $email = $user_info['email'];
-  $result = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
-
-  if ($result && $result->num_rows > 0) {
-      $row = $result->fetch_assoc();
-      return $row['user_level'];
-  } else {
-      // Default user level if not found
-      return 0;
+  <?php
+  session_start();
+  if (!isset($_SESSION['token'])) {
+      header('Location: login.php');
+      exit;
   }
+
+  require('./config.php');
+
+  $client->setAccessToken($_SESSION['token']);
+
+  if ($client->isAccessTokenExpired()) {
+      header('Location: logout.php');
+      exit;
+  }
+
+  $google_oauth = new Google_Service_Oauth2($client);
+  $user_info = $google_oauth->userinfo->get();
+  $email = $user_info['email'];
+  $owner_email = $user_info['email'];
+
+  $user = 'root';
+  $password = '';
+  $database = 'cvsuaccr_db';
+  $servername = '127.0.0.1';
+  $mysqli = new mysqli($servername, $user, $password, $database);
+
+  if ($mysqli->connect_error) {
+      die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
+  }
+
+  // Function to get user level
+  function getUserLevel() {
+      global $user_info, $mysqli;
+
+      // Assuming your users table has a 'user_level' column
+      $email = $user_info['email'];
+      $result = $mysqli->query("SELECT user_level FROM users WHERE email = '$email'");
+
+      if ($result && $result->num_rows > 0) {
+          $row = $result->fetch_assoc();
+          return $row['user_level'];
+      } else {
+          // Default user level if not found
+          return 0;
+      }
+  }
+
+// Function to export data to CSV
+function exportToCSV() {
+  global $mysqli;
+
+  // Fetch data from the database
+  $sql = "SELECT * FROM files WHERE file_directory IN ('CAFENR', 'General') AND CURDATE() <= valid_until";
+  $result = $mysqli->query($sql);
+
+  if (!$result) {
+      die('Error in SQL query: ' . $mysqli->error);
+  }
+
+  // Set the CSV filename
+  $csvFilename = 'CAFENR_data.csv';
+
+  // Create a new CSV file
+  $csvFile = fopen('php://output', 'w');
+
+  if (!$csvFile) {
+      die('Error creating CSV file');
+  }
+
+  // Write CSV file headers
+  $headers = array(
+      'Name',
+      'Owner',
+      'Date Uploaded',
+      'Valid Until',
+      'College',
+      'Course',
+      'Tags'
+  );
+  fputcsv($csvFile, $headers);
+
+  // Write data to the CSV file
+  while ($row = $result->fetch_assoc()) {
+      $tags = explode(',', $row['file_tags']);
+      $cleanedTags = [];
+
+      foreach ($tags as $tag) {
+          $tag = trim($tag);
+          if (!empty($tag)) {
+              // Remove "×" marks and extra commas
+              $tag = str_replace('×', '', $tag);
+              $cleanedTags[] = htmlspecialchars($tag);
+          }
+      }
+
+      $formattedTags = implode(', ', $cleanedTags);
+
+      $csvRow = array(
+          $row['file_name'],
+          $row['file_owner'],
+          $row['upload_date'],
+          $row['valid_until'],
+          $row['file_directory'],
+          $row['file_course'],
+          $formattedTags
+      );
+
+      fputcsv($csvFile, $csvRow);
+  }
+
+  // Close the CSV file
+  fclose($csvFile);
+
+  // Set headers to force download
+  header('Content-Type: text/csv');
+  header('Content-Disposition: attachment; filename="' . $csvFilename . '"');
+
+  exit;
 }
-// Get the selected course from the form
-$selectedCourse = isset($_GET['course']) ? $_GET['course'] : '';
 
-// Pagination
-$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$limit = 5; // Number of rows per page set to 5
-$offset = ($page - 1) * $limit; // Corrected offset calculation
-$totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM files WHERE file_directory = 'CAFENR' && CURDATE() <= valid_until || file_directory = 'General' && CURDATE() <= valid_until ")->fetch_assoc()['total'];
-$totalPages = ceil($totalRecords / $limit);
-
-// Get the selected sorting option and order from the form
-$sortOption = isset($_GET['sort']) ? $_GET['sort'] : 'id';
-$order = isset($_GET['order']) && $_GET['order'] === 'desc' ? 'DESC' : 'ASC';
-
-// If sorting by date, add specific order by clause for date
-if ($sortOption === 'upload_date') {
-    // Check if the user selected the order by date old to new
-    $dateOrder = ($order === 'desc') ? 'ASC' : 'DESC';
-
-    $sql = "SELECT * FROM files WHERE (file_directory = 'CAFENR' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY STR_TO_DATE(upload_date, '%Y-%m-%d') $dateOrder LIMIT $limit OFFSET $offset";
-} else {
-    // For other columns
-    $sql = "SELECT * FROM files WHERE (file_directory = 'CAFENR' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY $sortOption $order LIMIT $limit OFFSET $offset";
+// Check if the export button is clicked
+if (isset($_GET['export'])) {
+  exportToCSV();
 }
 
-$result = $mysqli->query($sql);
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CvSU Accreditation Archive System</title>
-    <link rel="stylesheet" type="text/css" href="styles/style5.css" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  // Continue with the rest of your existing code...
 
-    <style>
-        .pagination {
-          margin-left: 15px;
-        }
-    </style>
-</head>
-<body>
+  // Get the selected course from the form
+  $selectedCourse = isset($_GET['course']) ? $_GET['course'] : '';
 
-<div class="container-fluid">
-    <div id="main" class="main">
-        <div class="box">
-            <div class="profile-box">
-            <div id="sidenav" style="<?php echo (getUserLevel() == 2) ? 'display:none;' : ''; echo (getUserLevel() == 3) ? 'display:none;' : '';?>">
-                    <span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776;</span>
+  // Pagination
+  $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+  $limit = 5; // Number of rows per page set to 5
+  $offset = ($page - 1) * $limit; // Corrected offset calculation
+  $totalRecords = $mysqli->query("SELECT COUNT(*) as total FROM files WHERE file_directory = 'CAFENR' && CURDATE() <= valid_until || file_directory = 'General' && CURDATE() <= valid_until ")->fetch_assoc()['total'];
+  $totalPages = ceil($totalRecords / $limit);
+
+  // Get the selected sorting option and order from the form
+  $sortOption = isset($_GET['sort']) ? $_GET['sort'] : 'id';
+  $order = isset($_GET['order']) && $_GET['order'] === 'desc' ? 'DESC' : 'ASC';
+
+  // If sorting by date, add specific order by clause for date
+  if ($sortOption === 'upload_date') {
+      // Check if the user selected the order by date old to new
+      $dateOrder = ($order === 'desc') ? 'ASC' : 'DESC';
+
+      $sql = "SELECT * FROM files WHERE (file_directory = 'CAFENR' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY STR_TO_DATE(upload_date, '%Y-%m-%d') $dateOrder LIMIT $limit OFFSET $offset";
+  } else {
+      // For other columns
+      $sql = "SELECT * FROM files WHERE (file_directory = 'CAFENR' || file_directory = 'General') && CURDATE() <= valid_until AND file_course = '$selectedCourse' ORDER BY $sortOption $order LIMIT $limit OFFSET $offset";
+  }
+
+  $result = $mysqli->query($sql);
+  ?>
+
+
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>CvSU Accreditation Archive System</title>
+      <link rel="stylesheet" type="text/css" href="styles/style5.css" />
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+      <style>
+          .pagination {
+            margin-left: 15px;
+          }
+      </style>
+  </head>
+  <body>
+
+  <div class="container-fluid">
+      <div id="main" class="main">
+          <div class="box">
+              <div class="profile-box">
+              <div id="sidenav" style="<?php echo (getUserLevel() == 2) ? 'display:none;' : ''; echo (getUserLevel() == 3) ? 'display:none;' : '';?>">
+                      <span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776;</span>
+                  </div>
+                  <div class="profile-boxx">
+                  <div class="col-md-8">
+                      <div class="alert alert-info" style="margin-top: 10px; width: 500px; display: flex; align-items: center;">
+                          <span style="margin-right: 10px;">CAFENR  </span>
+                          <form method="GET">
+                              <select class="form-select" id="fileDirectoryDropdown" name="course" style="width: 400px; padding: 5px; border-radius: 5px;" onchange="this.form.submit()">
+                                  <option value="" <?php echo $selectedCourse === '' ? 'selected' : ''; ?>>Select Program</option>
+                                  <option value="Bachelor of Science in Agriculture" <?php echo $selectedCourse === 'Bachelor of Science in Agriculture' ? 'selected' : ''; ?>>Bachelor of Science in Agriculture</option>
+                                  <option value="Bachelor of Science in Environmental Science" <?php echo $selectedCourse === 'Bachelor of Science in Environmental Science' ? 'selected' : ''; ?>>Bachelor of Science in Environmental Science</option>
+                                  <option value="Bachelor of Science in Food Technology" <?php echo $selectedCourse === 'Bachelor of Science in Food Technology' ? 'selected' : ''; ?>>Bachelor of Science in Food Technology</option>
+                                  <option value="Bachelor of Science in Land Use Design and Management" <?php echo $selectedCourse === 'Bachelor of Science in Land Use Design and Management' ? 'selected' : ''; ?>>Bachelor of Science in Land Use Design and Management</option>
+                                  <option value="Bachelor in Agricultural Entrepreneurship" <?php echo $selectedCourse === 'Bachelor in Agricultural Entrepreneurship' ? 'selected' : ''; ?>>Bachelor in Agricultural Entrepreneurship</option>
+                                  <option value="Certificate in Agricultural Science" <?php echo $selectedCourse === 'Certificate in Agricultural Science' ? 'selected' : ''; ?>>Certificate in Agricultural Science</option>
+                              <!-- Add more options based on your requirements -->
+                              </select>
+                          </form>
+                      </div>
+
+                  <a href="#" id="authorizationButton" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>" onclick="handleAuthClick()" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-plus"></span> Upload File </a>
+                  <input id="user-email" value="<?php echo $owner_email?>" hidden></input>
+                  <!-- Add this form element to select sorting option and order -->
+                  <form class="sort-form" method="GET">
+      <label for="sort">Sort By:</label>
+      <select class="form-select" name="sort" id="sort">
+          <option value="id">ID</option>
+          <option value="file_name">Name</option>
+          <option value="file_owner">Owner</option>
+          <option value="upload_date">Date Uploaded</option>
+          <option value="valid_until">Validity</option>
+          <option value="file_course">Course</option>
+          <!-- Add more options based on your columns -->
+      </select>
+
+      <label for="order">Order:</label>
+      <select class="form-select" name="order" id="order">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+      </select>
+
+      <button type="submit" class="btn btn-primary">Sort</button>
+  </form>
+              </div>
+              
+              <div id="nav-bar" class="nav-bar">
+            <img src="images/cvsu-logo.png" class="logo">
+              <p class="title">CvSU Accreditation Archive System</p>
+          <div class="navv">
+            <div class="menu">
+              <button class="menu-button">
+                <img src="<?=$user_info['picture'];?>" referrerpolicy="no-referrer" class="menu-icon">
+              </button>
+              <div class="content">
+                <div class="menu-content">
+                  <a href="admin_dashboard.php" style="<?php echo (getUserLevel() != 0) ? 'display:none;' : ''; ?>">Profile</a>
+                  <a href="ido_dashboard.php" style="<?php echo (getUserLevel() != 1) ? 'display:none;' : ''; ?>">Profile</a>
+                  <a href="faculty_dashboard.php" style="<?php echo (getUserLevel() != 2) ? 'display:none;' : ''; ?>">Profile</a>
+                  <a href="profile.php" style="<?php echo (getUserLevel() != 3) ? 'display:none;' : ''; ?>">Profile</a>
+                  <a href="uploaded_files.php" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : ''; ?>">Uploaded Files</a>
+                  <a href="outdated_files.php" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : ''; ?>">Outdated Files</a>
+                  <a href="user_list.php" style="<?php echo (getUserLevel() != 0) ? 'display:none;' : ''; ?>">User List</a>
+                  <a href="logs.php" style="<?php echo (getUserLevel() != 0) ? 'display:none;' : ''; ?>">Activity Logs</a>
+                  <a href="#" data-toggle="modal" data-target="#logout">Sign Out</a>
                 </div>
-                <div class="profile-boxx">
-                <div class="col-md-8">
-                    <div class="alert alert-info" style="margin-top: 10px; width: 500px; display: flex; align-items: center;">
-                        <span style="margin-right: 10px;">CAFENR  </span>
-                        <form method="GET">
-                            <select class="form-select" id="fileDirectoryDropdown" name="course" style="width: 400px; padding: 5px; border-radius: 5px;" onchange="this.form.submit()">
-                                <option value="" <?php echo $selectedCourse === '' ? 'selected' : ''; ?>>Select Program</option>
-                                <option value="Bachelor of Science in Agriculture" <?php echo $selectedCourse === 'Bachelor of Science in Agriculture' ? 'selected' : ''; ?>>Bachelor of Science in Agriculture</option>
-                                <option value="Bachelor of Science in Environmental Science" <?php echo $selectedCourse === 'Bachelor of Science in Environmental Science' ? 'selected' : ''; ?>>Bachelor of Science in Environmental Science</option>
-                                <option value="Bachelor of Science in Food Technology" <?php echo $selectedCourse === 'Bachelor of Science in Food Technology' ? 'selected' : ''; ?>>Bachelor of Science in Food Technology</option>
-                                <option value="Bachelor of Science in Land Use Design and Management" <?php echo $selectedCourse === 'Bachelor of Science in Land Use Design and Management' ? 'selected' : ''; ?>>Bachelor of Science in Land Use Design and Management</option>
-                                <option value="Bachelor in Agricultural Entrepreneurship" <?php echo $selectedCourse === 'Bachelor in Agricultural Entrepreneurship' ? 'selected' : ''; ?>>Bachelor in Agricultural Entrepreneurship</option>
-                                <option value="Certificate in Agricultural Science" <?php echo $selectedCourse === 'Certificate in Agricultural Science' ? 'selected' : ''; ?>>Certificate in Agricultural Science</option>
-                            <!-- Add more options based on your requirements -->
-                            </select>
-                        </form>
-                    </div>
-
-                <a href="#" id="authorizationButton" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>" onclick="handleAuthClick()" class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-plus"></span> Upload File </a>
-                <input id="user-email" value="<?php echo $owner_email?>" hidden></input>
-                 <!-- Add this form element to select sorting option and order -->
-                 <form class="sort-form" method="GET">
-    <label for="sort">Sort By:</label>
-    <select class="form-select" name="sort" id="sort">
-        <option value="id">ID</option>
-        <option value="file_name">Name</option>
-        <option value="file_owner">Owner</option>
-        <option value="upload_date">Date Uploaded</option>
-        <option value="valid_until">Validity</option>
-        <option value="file_course">Course</option>
-        <!-- Add more options based on your columns -->
-    </select>
-
-    <label for="order">Order:</label>
-    <select class="form-select" name="order" id="order">
-        <option value="asc">Ascending</option>
-        <option value="desc">Descending</option>
-    </select>
-
-    <button type="submit" class="btn btn-primary">Sort</button>
-</form>
-            </div>
-            
-            <div id="nav-bar" class="nav-bar">
-          <img src="images/cvsu-logo.png" class="logo">
-            <p class="title">CvSU Accreditation Archive System</p>
-        <div class="navv">
-          <div class="menu">
-            <button class="menu-button">
-              <img src="<?=$user_info['picture'];?>" referrerpolicy="no-referrer" class="menu-icon">
-            </button>
-            <div class="content">
-              <div class="menu-content">
-                <a href="admin_dashboard.php" style="<?php echo (getUserLevel() != 0) ? 'display:none;' : ''; ?>">Profile</a>
-                <a href="ido_dashboard.php" style="<?php echo (getUserLevel() != 1) ? 'display:none;' : ''; ?>">Profile</a>
-                <a href="faculty_dashboard.php" style="<?php echo (getUserLevel() != 2) ? 'display:none;' : ''; ?>">Profile</a>
-                <a href="profile.php" style="<?php echo (getUserLevel() != 3) ? 'display:none;' : ''; ?>">Profile</a>
-                <a href="uploaded_files.php" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : ''; ?>">Uploaded Files</a>
-                <a href="outdated_files.php" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : ''; ?>">Outdated Files</a>
-                <a href="user_list.php" style="<?php echo (getUserLevel() != 0) ? 'display:none;' : ''; ?>">User List</a>
-                <a href="logs.php" style="<?php echo (getUserLevel() != 0) ? 'display:none;' : ''; ?>">Activity Logs</a>
-                <a href="#" data-toggle="modal" data-target="#logout">Sign Out</a>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div id="search-box">
-            <input type="text" id="searchInput" placeholder="Search" size="50" oninput="search()">
-      </div>
+        <div id="search-box">
+              <input type="text" id="searchInput" placeholder="Search" size="50" oninput="search()">
+        </div>
 
-      <section>
-        <table class="file-query table table-bordered table-hover table-striped">
-        <thead>
-          <tr>
-            <th class="text-center" style="width: 250px;">NAME</th>
-            <th class="text-center" style="width: 125px;">OWNER</th>
-            <th class="text-center">DATE UPLOADED</th>
-            <th class="text-center">VALID UNTIL</th>
-            <th class="text-center" style="width: 150px;">COLLEGE</th>
-            <th class="text-center" style="width: 150px;">COURSE</th>
-            <th class="text-center" style="width: 120px;">TAGS</th>
-            <th class="text-center" colspan="3">ACTIONS</th>
-          </tr>
-        </thead>
-        <tbody>
-        <?php
-              while ($rows = $result->fetch_assoc()) {
-                  $id = $rows['id'];
-                  $fileId = $rows['file_id'];
+        <section>
+          <table class="file-query table table-bordered table-hover table-striped">
+          <thead>
+            <tr>
+              <th class="text-center" style="width: 250px;">NAME</th>
+              <th class="text-center" style="width: 125px;">OWNER</th>
+              <th class="text-center">DATE UPLOADED</th>
+              <th class="text-center">VALID UNTIL</th>
+              <th class="text-center" style="width: 150px;">COLLEGE</th>
+              <th class="text-center" style="width: 150px;">COURSE</th>
+              <th class="text-center" style="width: 120px;">TAGS</th>
+              <th class="text-center" colspan="3">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+          <?php
+                while ($rows = $result->fetch_assoc()) {
+                    $id = $rows['id'];
+                    $fileId = $rows['file_id'];
 
-                  // Convert upload_date to a timestamp
-                  $dateUploaded = strtotime($rows["upload_date"]);
+                    // Convert upload_date to a timestamp
+                    $dateUploaded = strtotime($rows["upload_date"]);
 
-                  // Check if the file is older than 5 years
-                  $isOlderThan5Years = (time() - $dateUploaded) > (5 * 365 * 24 * 60 * 60);
+                    // Check if the file is older than 5 years
+                    $isOlderThan5Years = (time() - $dateUploaded) > (5 * 365 * 24 * 60 * 60);
 
-                  // Convert valid_until to a timestamp
-                  $validUntil = strtotime($rows["valid_until"]);
-                  
-                  // Get the current date as a timestamp
-                  $currentDate = strtotime(date("Y-m-d"));
-                  
-                  // Check if the file is outdated based on valid_until
-                  $isOutdated = $currentDate > $validUntil;
+                    // Convert valid_until to a timestamp
+                    $validUntil = strtotime($rows["valid_until"]);
+                    
+                    // Get the current date as a timestamp
+                    $currentDate = strtotime(date("Y-m-d"));
+                    
+                    // Check if the file is outdated based on valid_until
+                    $isOutdated = $currentDate > $validUntil;
 
-                  // Use a class to set the text color based on the conditions
-                  $rowClass = $isOlderThan5Years || $isOutdated ? 'color:red' : '';
-              ?>
-
-            <tr class="results" style="<?php echo $rowClass;?>">
-              <td class="text-center"><?php echo $rows['file_name']; ?></td>
-              <td class="text-center"><?php echo $rows['file_owner'];?></td>
-              <td class="text-center"><?php echo $rows['upload_date'];?></td>
-              <td class="text-center"><?php echo $rows['valid_until'];?></td>
-              <td class="text-center"><?php echo $rows['file_directory'];?></td>
-              <td class="text-center"><?php echo $rows['file_course'];?></td>
-              <td class="text-center">
-                <?php
-                $tags = explode(',', $rows['file_tags']);
-                $cleanedTags = [];
-
-                foreach ($tags as $tag) {
-                    $tag = trim($tag);
-                    if (!empty($tag)) {
-                        // Remove "×" marks and extra commas
-                        $tag = str_replace('×', '', $tag);
-                        $cleanedTags[] = '' . htmlspecialchars($tag);
-                    }
-                }
-
-                $formattedTags = implode(', ', $cleanedTags);
-                echo rtrim($formattedTags, ' ');
+                    // Use a class to set the text color based on the conditions
+                    $rowClass = $isOlderThan5Years || $isOutdated ? 'color:red' : '';
                 ?>
-              </td>
-              <td>
-              <button class="btn btn-info btn-sm" onclick="copyLink('<?php echo $rows['file_viewLink'];?>')"><span class="glyphicon glyphicon glyphicon-copy"></span></button>
-              <button class="btn btn-primary btn-sm" onclick="openLink('<?php echo $rows['file_viewLink'];?>')"><span class="glyphicon glyphicon-eye-open"></span></button>
-                <button class="btn btn-success btn-sm" onclick="openLink('<?php echo $rows['file_downloadLink'];?>')"><span class="glyphicon glyphicon-download-alt"></span></button>
-                <?php
-                  if ($rows['owner_email'] == $email) {
-                  ?>
-                  <button class="btn btn-danger btn-delete" style="height:30px;font-size:12px;" type="button" onclick="handleAuthClick()" data-toggle="modal" data-target="#modal_remove" data-id="<?php echo $fileId;?>" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>"><span class="glyphicon glyphicon-trash"></span></button>
+
+              <tr class="results" style="<?php echo $rowClass;?>">
+                <td class="text-center"><?php echo $rows['file_name']; ?></td>
+                <td class="text-center"><?php echo $rows['file_owner'];?></td>
+                <td class="text-center"><?php echo $rows['upload_date'];?></td>
+                <td class="text-center"><?php echo $rows['valid_until'];?></td>
+                <td class="text-center"><?php echo $rows['file_directory'];?></td>
+                <td class="text-center"><?php echo $rows['file_course'];?></td>
+                <td class="text-center">
                   <?php
+                  $tags = explode(',', $rows['file_tags']);
+                  $cleanedTags = [];
+
+                  foreach ($tags as $tag) {
+                      $tag = trim($tag);
+                      if (!empty($tag)) {
+                          // Remove "×" marks and extra commas
+                          $tag = str_replace('×', '', $tag);
+                          $cleanedTags[] = '' . htmlspecialchars($tag);
+                      }
                   }
-                ?>
-              </td>
-                </tr>
-            <?php
-            }
-            ?>
-        </tbody>
-    </table>
-<!-- Modified Pagination -->
-<div class="pagination-container">
-    <?php if ($page > 1): ?>
-        <a href="?page=<?php echo $page - 1; ?>" class="pagination-link">Previous</a>
-    <?php endif; ?>
 
-    <div class="pagination-info">
-        <span>Page <?php echo $page; ?> of <?php echo $totalPages; ?></span>
-    </div>
+                  $formattedTags = implode(', ', $cleanedTags);
+                  echo rtrim($formattedTags, ' ');
+                  ?>
+                </td>
+                <td>
+                <button class="btn btn-info btn-sm" onclick="copyLink('<?php echo $rows['file_viewLink'];?>')"><span class="glyphicon glyphicon glyphicon-copy"></span></button>
+                <button class="btn btn-primary btn-sm" onclick="openLink('<?php echo $rows['file_viewLink'];?>')"><span class="glyphicon glyphicon-eye-open"></span></button>
+                  <button class="btn btn-success btn-sm" onclick="openLink('<?php echo $rows['file_downloadLink'];?>')"><span class="glyphicon glyphicon-download-alt"></span></button>
+                  <?php
+                    if ($rows['owner_email'] == $email) {
+                    ?>
+                    <button class="btn btn-danger btn-delete" style="height:30px;font-size:12px;" type="button" onclick="handleAuthClick()" data-toggle="modal" data-target="#modal_remove" data-id="<?php echo $fileId;?>" style="<?php echo (getUserLevel() == 3) ? 'display:none;' : '';?>"><span class="glyphicon glyphicon-trash"></span></button>
+                    <?php
+                    }
+                  ?>
+                </td>
+                  </tr>
+              <?php
+              }
+              ?>
+          </tbody>
+      </table>
+  <!-- Modified Pagination -->
+  <div class="pagination-container">
+      <?php if ($page > 1): ?>
+          <a href="?page=<?php echo $page - 1; ?>" class="pagination-link">Previous</a>
+      <?php endif; ?>
 
-    <?php if ($page < $totalPages): ?>
-        <a href="?page=<?php echo $page + 1; ?>" class="pagination-link">Next</a>
-    <?php endif; ?>
+      <div class="pagination-info">
+          <span>Page <?php echo $page; ?> of <?php echo $totalPages; ?></span>
+      </div>
+
+      <?php if ($page < $totalPages): ?>
+          <a href="?page=<?php echo $page + 1; ?>" class="pagination-link">Next</a>
+      <?php endif; ?>
 
     <!-- Page input field -->
-    <form action="" method="GET" class="pagination-form">
-        <label for="pageInput" class="pagination-label">Go to Page:</label>
-        <input type="number" id="pageInput" name="page" min="1" max="<?php echo $totalPages; ?>" value="<?php echo $page; ?>" class="pagination-input">
-        <button type="submit" class="pagination-button">Go</button>
-    </form>
-</div>
+  <form action="" method="GET" class="pagination-form">
+      <label for="pageInput" class="pagination-label">Go to Page:</label>
+      <input type="number" id="pageInput" name="page" min="1" max="<?php echo $totalPages; ?>" value="<?php echo $page; ?>" class="pagination-input">
+      <button type="submit" class="pagination-button">Go</button>
+
+      <button type="submit" name="export" class="btn btn-success">Export to Excel</button>
+  </form>
+
 
 </section>
     </div>

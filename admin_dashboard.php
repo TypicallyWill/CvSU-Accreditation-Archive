@@ -73,11 +73,13 @@ $userResult = $mysqli->query($sql);
 
 $collegeData = array();
 $filesData = array();
+$outdatedFilesData = array();
 
 // Initializing college data with pre-made labels
 foreach ($premadeLabels as $collegeLabel) {
     $collegeData[$collegeLabel] = 0;
     $filesData[$collegeLabel] = 0;
+    $outdatedFilesData[$collegeLabel] = 0;
 }
 
 // SQL query to select data from the files table
@@ -87,7 +89,7 @@ $filesResult = $mysqli->query($sqlFiles);
 // Collecting data for the files graph
 while ($fileRow = $filesResult->fetch_assoc()) {
     $displayCollege = ($fileRow['file_directory'] === 'Graduate School and Open Learning College') ? 'GSOLC' : $fileRow['file_directory'];
-    
+
     // Use 'COM' for display
     $displayCollegeDisplay = ($displayCollege === 'College of Medicine') ? 'COM' : $displayCollege;
 
@@ -109,6 +111,20 @@ while ($row = $userResult->fetch_assoc()) {
 
     if (isset($collegeData[$displayCollegeDisplay])) {
         $collegeData[$displayCollegeDisplay] = $row['userCount'];
+    }
+}
+
+// SQL query to select outdated files data
+$currentDate = date('Y-m-d');
+$sqlOutdatedFiles = "SELECT file_directory, COUNT(*) as outdatedCount FROM files WHERE DATE(valid_until) < '$currentDate' GROUP BY file_directory";
+$outdatedFilesResult = $mysqli->query($sqlOutdatedFiles);
+
+while ($outdatedFileRow = $outdatedFilesResult->fetch_assoc()) {
+    $displayCollege = ($outdatedFileRow['file_directory'] === 'Graduate School and Open Learning College') ? 'GSOLC' : $outdatedFileRow['file_directory'];
+    $displayCollegeDisplay = ($displayCollege === 'College of Medicine') ? 'COM' : $displayCollege;
+
+    if (isset($outdatedFilesData[$displayCollegeDisplay])) {
+        $outdatedFilesData[$displayCollegeDisplay] = $outdatedFileRow['outdatedCount'];
     }
 }
 
@@ -170,11 +186,43 @@ function displayFilesPerCollegeBarGraph($data)
     echo '</script>';
 }
 
+// Function to generate the bar graph for Outdated files per college
+function displayOutdatedFilesPerCollegeBarGraph($data)
+{
+    echo '<script>';
+    echo 'var ctx = document.getElementById("barChart3").getContext("2d");';
+    echo 'var randomColors = ' . json_encode(generateRandomColors(count($data))) . ';';
+    echo 'var myChart = new Chart(ctx, {';
+    echo 'type: "bar",';
+    echo 'data: {';
+    echo 'labels: ' . json_encode(array_keys($data)) . ',';
+    echo 'datasets: [{';
+    echo 'label: "Outdated Files per College",';
+    echo 'data: ' . json_encode(array_values($data)) . ',';
+    echo 'backgroundColor: randomColors,';
+    echo 'borderColor: randomColors,';
+    echo 'borderWidth: 1';
+    echo '}]';
+    echo '},';
+    echo 'options: {';
+    echo 'scales: {';
+    echo 'y: {';
+    echo 'beginAtZero: true';
+    echo '}';
+    echo '}';
+    echo '}';
+    echo '});';
+    echo '</script>';
+}
+
 // Display the bar graph for users per college
 displayUsersPerCollegeBarGraph($collegeData);
 
 // Display the bar graph for files per college
 displayFilesPerCollegeBarGraph($filesData);
+
+// Display the bar graph for files per college
+displayOutdatedFilesPerCollegeBarGraph($outdatedFilesData);
 
 $mysqli->close();
 ?>
@@ -223,6 +271,32 @@ $mysqli->close();
             width: 300px;
             height: 150px;
         }
+        .total-users {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        background-color: #f0f0f0; /* Add a background color */
+        border-radius: 10px; /* Add border-radius for rounded corners */
+        padding: 20px; /* Add padding for better spacing */
+}
+
+.total-users h4 {
+    width: 30%;
+    margin: 10px;
+    text-align: center;
+    font-size: 18px; /* Adjust font size for better readability */
+}
+.outdated-boxx .alert {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to right, #4CAF50, #81c784);
+    color: #fff;
+    cursor: default;
+    border-radius: 5px;
+}
+
+
     </style>
 
 </head>
@@ -276,8 +350,14 @@ $mysqli->close();
                          style="margin-top:10px;width: 720px;margin-left:10px;background:linear-gradient(to right, #4CAF50, #81c784);;color: #fff;cursor:default;">
                         <b>STATISTICS</b>
                     </div>
+                    <div class="total-users" style="border-radius: 10px; padding: 10px; background-color: #f0f0f0;">
+                        <h4>Total Number of Users: - - </h4>
+                        <h4>Total Number of Files: - -</h4>
+                        <!-- Add any content or data you want to display here -->
+                    </div>
                     <canvas id="barChart1" width="300" height="150"></canvas>
                     <canvas id="barChart2" width="300" height="150"></canvas>
+                    <canvas id="barChart3" width="300" height="150"></canvas>
                 </div>
             </div>
         </div>
@@ -420,9 +500,35 @@ $mysqli->close();
             });
         }
 
+        function updateBarGraph3(data) {
+            var ctx = document.getElementById('barChart3').getContext('2d');
+            var randomColors = <?php echo json_encode(generateRandomColors(count($premadeLabels), 'red')); ?>;
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: <?php echo json_encode($premadeLabels); ?>,
+                    datasets: [{
+                        label: 'Outdated Files per College',
+                        data: Object.values(data),
+                        backgroundColor: randomColors,
+                        borderColor: randomColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
         // Call the functions with collected data and random colors
         updateBarGraph1(<?php echo json_encode($collegeData); ?>);
         updateBarGraph2(<?php echo json_encode($filesData); ?>); // Modified line to use $filesData
+        updateBarGraph3(<?php echo json_encode($outdatedFilesData); ?>);
     </script>
 
     <script type="text/javascript" src="./js/gapi-upload.js"></script>
