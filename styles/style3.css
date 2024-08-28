@@ -76,23 +76,22 @@ nav ul li a {
 
 .row {
     padding-left: 4%;
-    padding-right: 4%;
     display: flex;
     height: 88%;
     align-items: center;
 }
 
 .about-us-box {
-    width: 700px;
+    width: 805px;
     height: 400px;
     background: linear-gradient(rgba(255, 255, 255, .5), rgba(255, 255, 255, .5));
     box-shadow: 5px 5px 20px #000000;
 }
 
 .col {
-    flex-basis: 50%;
-    padding-left: 8%;
-    padding-right: 8%;
+    flex-basis: 71%;
+    padding-left: 6%;
+    padding-right: 6%;
 }
 
 h1 {
@@ -120,12 +119,15 @@ h1 {
     border-radius: 10px;
     padding: 15px 25px;
     box-sizing: border-box;
-    cursor: pointer;
-    margin: 10px 15px;
+    cursor: default;
+    margin: 10px 11px;
     background-position: center;
     background-size: cover;
     box-shadow: 5px 5px 20px #000000;
     transition: transform 0.5s;
+    position: relative;
+    vertical-align: top;
+    left: 10px;
 }
 
 .denn {
@@ -138,10 +140,6 @@ h1 {
 
 .will {
     background-image: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(/cvsu_accrsystem/images/will.png);
-}
-
-.joel {
-    background-image: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(/cvsu_accrsystem/images/joel.png);
 }
 
 .card:hover {
@@ -158,10 +156,6 @@ h1 {
 
 .will:hover {
     background-image: url(/cvsu_accrsystem/images/will.png);
-}
-
-.joel:hover {
-    background-image: url(/cvsu_accrsystem/images/joel.png);
 }
 
 h5 {

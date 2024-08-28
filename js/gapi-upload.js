@@ -103,7 +103,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -146,7 +146,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -187,7 +187,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -228,7 +228,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -269,7 +269,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -310,7 +310,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -351,7 +351,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -392,7 +392,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -433,7 +433,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -474,7 +474,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -515,7 +515,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -556,7 +556,7 @@ function uploadFile() {
 			}).then((response) => {
 				const files = response.result.files;
         		if (files && files.length > 0) {
-					alert("File: " + selectedFile.name + " already exists in the database.");
+					alert("Sorry! This file already exists in the database.");
 				} else {
 					var metadata = {
 						'name': fileName,
@@ -609,6 +609,338 @@ async function deleteFile(fileId) {
 	});
 }
 
+async function trashFile(fileId, fileDirectory) {
+	const accessToken = gapi.client.getToken().access_token;
+	const url = 'https://www.googleapis.com/drive/v3/files/' + fileId;
+	
+	switch (fileDirectory) {
+		case "CAFENR":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1TOtgbbPoKIr3JZNyVfP4D6SJdYf3aOW_';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CAS":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1_iD1SgmR0j842o0Oo0W2BOohmSf5tbGR';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CCJ":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1ulh8Z5zVz6iJzO0AXO6GAJQBbP2Dkm7g';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CED":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1prhnN8SQkVBmg2cO3Nq2RFZXoaYF3bXZ';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CEMDS":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1EGaDpuwOAqrJrP4vW5WhD5iWAMXQra1j';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CEIT":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1ShUNEQ9F_wN6Nxuyo-8y9j4JKig8dlmg';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CON":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1hqDXkWjvcsB0WKNYw_roijPj9eDTC8fn';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CSPEAR":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1fjGBBGdSEEZmxRIbVl8X-1zFvmIep51o';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CVMBS":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1JLQ7RBz41Z72CBdcrFKkrjHyCzQbcnlE';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "College of Medicine":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1-adk4eqga1fBQLTReLIKP_eBTUTzF81v';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "Graduate School and Open Learning College":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1YG4Z0wpBu0X2b4t78yhQ2un4YxyKjc27';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "General":
+			var newParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+			var ogParent = '1cS_xmX5ct0FV4bP9LZfDlc_vd72ZYpPZ';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File moved successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		default:
+			console.log(metadata);
+	};
+}
+
+async function restoreFile(fileId, fileDirectory) {
+	const accessToken = gapi.client.getToken().access_token;
+	const url = 'https://www.googleapis.com/drive/v3/files/' + fileId;
+	
+	switch (fileDirectory) {
+		case "CAFENR":
+			var newParent = '1TOtgbbPoKIr3JZNyVfP4D6SJdYf3aOW_';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CAS":
+			var newParent = '1_iD1SgmR0j842o0Oo0W2BOohmSf5tbGR';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CCJ":
+			var newParent = '1ulh8Z5zVz6iJzO0AXO6GAJQBbP2Dkm7g';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CED":
+			var newParent = '1prhnN8SQkVBmg2cO3Nq2RFZXoaYF3bXZ';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CEMDS":
+			var newParent = '1EGaDpuwOAqrJrP4vW5WhD5iWAMXQra1j';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CEIT":
+			var newParent = '1ShUNEQ9F_wN6Nxuyo-8y9j4JKig8dlmg';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CON":
+			var newParent = '1hqDXkWjvcsB0WKNYw_roijPj9eDTC8fn';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CSPEAR":
+			var newParent = '1fjGBBGdSEEZmxRIbVl8X-1zFvmIep51o';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "CVMBS":
+			var newParent = '1JLQ7RBz41Z72CBdcrFKkrjHyCzQbcnlE';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "College of Medicine":
+			var newParent = '1-adk4eqga1fBQLTReLIKP_eBTUTzF81v';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "Graduate School and Open Learning College":
+			var newParent = '1YG4Z0wpBu0X2b4t78yhQ2un4YxyKjc27';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		case "General":
+			var newParent = '1cS_xmX5ct0FV4bP9LZfDlc_vd72ZYpPZ';
+			var ogParent = '1gejHpxD4KUeTjAYmvNeDgLV9f2LmJ9qu';
+
+			return gapi.client.drive.files.update({
+				fileId: fileId,
+				addParents: newParent,
+				removeParents: ogParent,
+			}).then(function (response) {
+			console.log('File restored successfully', response);
+			}), function(error) {
+			console.error('Error moving file:', error);
+			};
+		default:
+			console.log(metadata);
+	};
+}
+
 function removeFromDb(fileId) {
 	$.ajax({
         type: 'POST',
@@ -617,6 +949,38 @@ function removeFromDb(fileId) {
         success: function(response) {
             console.log(response);
 			alert("The file has been deleted successfully.");
+			window.location.reload();
+        },
+        error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+        }
+    });
+}
+
+function trashDb(fileId) {
+	$.ajax({
+        type: 'POST',
+        url: 'trash.php',
+        data: { 'fileId': fileId },
+        success: function(response) {
+            console.log(response);
+			alert("The file has been moved to trash successfully.");
+			window.location.reload();
+        },
+        error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+        }
+    });
+}
+
+function restoreDb(fileId) {
+	$.ajax({
+        type: 'POST',
+        url: 'restore.php',
+        data: { 'fileId': fileId },
+        success: function(response) {
+            console.log(response);
+			alert("The file has been restored to its directory successfully.");
 			window.location.reload();
         },
         error: function(xhr, status, error) {
@@ -649,6 +1013,101 @@ function removeUserRequest(id) {
         success: function(response) {
             console.log(response);
 			alert("The user access request has been removed.");
+			window.location.reload();
+        },
+        error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+        }
+    });
+}
+
+function grantPermissionToUser(file_id, user_email, permission, expiration) {
+	accessToken = gapi.auth.getToken().access_token;
+    // ID of the file to grant permission
+    var fileId = file_id;
+
+    // Email address of the user to grant permission
+    var userEmail = user_email;
+
+	var role = permission;
+
+	var expirationTime = expiration;
+
+    // Permission request object with expiration time
+    var requestBody = {
+        'role': role, // Viewer role
+        'type': 'user',
+        'emailAddress': userEmail // Specific user email address
+    };
+
+	// URL for granting permission to the file
+	var url = 'https://www.googleapis.com/drive/v3/files/' + fileId + '/permissions';
+
+	// Headers for the request
+	var headers = {
+	  'Authorization': 'Bearer ' + accessToken,
+	  'Content-Type': 'application/json'
+	};
+
+	// Make a POST request to grant permission to the file
+	fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '/permissions', {
+	  method: 'POST',
+	  headers: {
+		'Authorization': 'Bearer ' + accessToken,
+		'Content-Type': 'application/json'
+	  },
+	  body: JSON.stringify(requestBody)
+	})
+	.then(response => {	
+		if (response.ok) {
+	  		console.log('Permission granted to user: ', userEmail);
+	  	} else {
+			console.error('Failed to create permission:', response.status);
+		}
+	})
+	.catch(error => {
+		console.error('Error creating permission:', error);
+	});
+
+    /* Send permission request to the Drive API
+    gapi.client.drive.permissions.create({
+      'fileId': fileId,
+      'resource': permissionRequest
+    }).then(function(response) {
+      console.log('Permission granted with expiration:', response);
+    }, function(error) {
+      console.error('Error granting permission with expiration:', error);
+    });*/
+}
+
+function allowAccess(fileId, userEmail) {
+	$.ajax({
+        type: 'POST',
+        url: 'allow_access.php',
+        data: { 'fileId': fileId,
+			'userEmail': userEmail
+		 },
+        success: function(response) {
+            console.log(response);
+			alert("The user has been granted access to the file.");
+			window.location.reload();
+        },
+        error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+        }
+    });
+}
+
+function removeRequest(fileId, userEmail) {
+	$.ajax({
+        type: 'POST',
+        url: 'remove_request.php',
+        data: { 'fileId': fileId,
+			'userEmail': userEmail
+		},
+        success: function(response) {
+            console.log(response);
+			alert("The request has been removed.");
 			window.location.reload();
         },
         error: function(xhr, status, error) {
